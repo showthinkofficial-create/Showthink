@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Raleway:wght@400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: 'Raleway', sans-serif;
+}
+
+/* Custom cursor using Google Drive direct image URL link */
+html, body {
+  cursor: url('https://lh3.googleusercontent.com/d/1-XEGkn0baY9duu0x8jpvF6imDmCVtRJG') 16 16, auto;
+}
+
+a, button, [role="button"], select, input, textarea, .cursor-pointer, [onclick] {
+  cursor: url('https://lh3.googleusercontent.com/d/1-XEGkn0baY9duu0x8jpvF6imDmCVtRJG') 16 16, pointer;
+}
+
+/* Base custom styles to support high quality animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+

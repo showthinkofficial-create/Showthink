@@ -1,0 +1,6 @@
+{
+  "name": "GP Academy",
+  "description": "Premium educational website for GP Academy, Noida. Highlights CBSE curriculum, Nursery to Class 12, admissions, and modern school facilities.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

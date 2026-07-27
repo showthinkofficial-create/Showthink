@@ -1,0 +1,97 @@
+{
+  "entities": {
+    "Enquiry": {
+      "title": "Enquiry",
+      "description": "Admission enquiry from prospective students and parents.",
+      "type": "object",
+      "properties": {
+        "studentName": {
+          "type": "string",
+          "description": "Full name of the prospective student."
+        },
+        "parentName": {
+          "type": "string",
+          "description": "Full name of the parent or guardian."
+        },
+        "phone": {
+          "type": "string",
+          "description": "10-digit primary mobile contact number."
+        },
+        "alternatePhone": {
+          "type": "string",
+          "description": "Optional secondary/alternate contact number."
+        },
+        "currentClass": {
+          "type": "string",
+          "description": "Current grade or class of the student."
+        },
+        "admissionClass": {
+          "type": "string",
+          "description": "Target grade or class requested for admission."
+        },
+        "boardPreference": {
+          "type": "string",
+          "description": "Choice of academic board."
+        },
+        "enquiryType": {
+          "type": "string",
+          "description": "Category or area of inquiry interest."
+        },
+        "previousSchool": {
+          "type": "string",
+          "description": "The student's previous school, if any."
+        },
+        "area": {
+          "type": "string",
+          "description": "Residential area or locality address."
+        },
+        "preferredContactMethod": {
+          "type": "string",
+          "description": "Preferred communication method, e.g., WhatsApp or Call."
+        },
+        "message": {
+          "type": "string",
+          "description": "Optional message or remarks from parent."
+        },
+        "consent": {
+          "type": "boolean",
+          "description": "Consent check state to be contacted."
+        },
+        "status": {
+          "type": "string",
+          "description": "Lifecycle status of the enquiry, e.g., 'New'."
+        },
+        "source": {
+          "type": "string",
+          "description": "Acquisition source channel, defaults to 'Website'."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp of the record."
+        }
+      },
+      "required": [
+        "studentName",
+        "parentName",
+        "phone",
+        "currentClass",
+        "admissionClass",
+        "boardPreference",
+        "enquiryType",
+        "area",
+        "preferredContactMethod",
+        "consent",
+        "status",
+        "source",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "enquiries/{enquiryId}": {
+      "schema": "Enquiry",
+      "description": "A collection of admission enquiries received online."
+    }
+  }
+}
