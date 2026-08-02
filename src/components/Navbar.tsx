@@ -82,7 +82,11 @@ export default function Navbar({ activePage, setActivePage, onOpenApplyModal }: 
           {/* Logo Brand */}
           <div 
             className="flex items-center gap-3 cursor-pointer group shrink-0"
-            onClick={() => setActivePage('home')}
+            onClick={() => {
+              setActivePage('home');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            title="Go to Home"
           >
             {/* Logo Badge Container */}
             <div className="flex items-center gap-3 shrink-0">
@@ -152,7 +156,15 @@ export default function Navbar({ activePage, setActivePage, onOpenApplyModal }: 
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-8 pb-4 border-b border-gray-100">
-            <div className="flex items-center gap-2">
+            <div 
+              className="flex items-center gap-2 cursor-pointer"
+              onClick={() => {
+                setActivePage('home');
+                setIsOpen(false);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              title="Go to Home"
+            >
               <Logo size={42} />
               <span className="font-bold text-gray-800 text-base">GP Academy</span>
             </div>

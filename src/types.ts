@@ -40,7 +40,7 @@ export interface NewsItem {
   id: string;
   title: string;
   date: string;
-  category: 'Notice' | 'Event' | 'Achievement' | 'Academics';
+  category: 'Notice' | 'Event' | 'Achievement' | 'Academics' | 'Science Project';
   summary: string;
   content: string;
   imageUrl: string;

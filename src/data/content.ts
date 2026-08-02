@@ -66,51 +66,51 @@ export const FACILITIES: FacilityItem[] = [
 export const GALLERY_IMAGES: GalleryItem[] = [
   {
     id: 'gal-1',
-    title: 'Nursery Creative Corner',
-    category: 'Activities',
-    imageUrl: 'https://images.unsplash.com/photo-1564424224827-cd24b8915874?auto=format&fit=crop&q=80&w=800'
+    title: 'Annual Function Celebrations',
+    category: 'Celebrations',
+    imageUrl: 'https://cdn.phototourl.com/free/2026-08-02-be920722-7e17-435f-bc56-772a27761430.jpg'
   },
   {
     id: 'gal-2',
-    title: 'Physics Practical Lab',
-    category: 'Labs',
-    imageUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80&w=800'
+    title: "Teachers' Day Celebration",
+    category: 'Celebrations',
+    imageUrl: 'https://cdn.phototourl.com/free/2026-08-02-08240ee6-f703-4cd7-b526-b9f57c7c07d7.jpg'
   },
   {
     id: 'gal-3',
-    title: 'Inter-School Sports Meet',
-    category: 'Sports',
-    imageUrl: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&q=80&w=800'
+    title: 'School Teachers Celebration',
+    category: 'Celebrations',
+    imageUrl: 'https://cdn.phototourl.com/free/2026-08-02-b5095f4c-7a71-419b-8ba3-327afc842161.jpg'
   },
   {
     id: 'gal-4',
-    title: 'Modern Library Corridor',
-    category: 'Campus',
-    imageUrl: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&q=80&w=800'
+    title: 'Chief Guest Welcome',
+    category: 'Celebrations',
+    imageUrl: 'https://cdn.phototourl.com/free/2026-08-02-ec40fea8-19ca-438f-a187-c79e36248765.jpg'
   },
   {
     id: 'gal-5',
     title: 'Computer Lab Session',
     category: 'Labs',
-    imageUrl: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&q=80&w=800'
+    imageUrl: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&q=90&w=1600'
   },
   {
     id: 'gal-6',
-    title: 'Annual Day Celebrations',
-    category: 'Celebrations',
-    imageUrl: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=800'
+    title: 'Nursery Creative Corner',
+    category: 'Activities',
+    imageUrl: 'https://images.unsplash.com/photo-1564424224827-cd24b8915874?auto=format&fit=crop&q=90&w=1600'
   },
   {
     id: 'gal-7',
-    title: 'Science Exhibition',
-    category: 'Activities',
-    imageUrl: 'https://images.unsplash.com/photo-1507537297725-24a1c029d3ca?auto=format&fit=crop&q=80&w=800'
+    title: 'Student Science Project Exhibition',
+    category: 'Labs',
+    imageUrl: 'https://images.unsplash.com/photo-1507537297725-24a1c029d3ca?auto=format&fit=crop&q=90&w=1600'
   },
   {
     id: 'gal-8',
     title: 'Yoga and Meditation Assembly',
     category: 'Activities',
-    imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=800'
+    imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=90&w=1600'
   }
 ];
 
@@ -135,12 +135,12 @@ export const NEWS_EVENTS: NewsItem[] = [
   },
   {
     id: 'news-3',
-    title: 'Monsoon Science and Creativity Exhibition scheduled in August',
-    date: 'July 24, 2026',
-    category: 'Event',
-    summary: 'Join us for our mega science models and robotic creations exhibition showcasing student ingenuity.',
-    content: 'GP Academy is hosting its annual Scientific Exhibition on August 15th. Projects will cover visual environmental science models, smart automation, renewable energy prototypes, and digital software displays curated directly by our class 6-12 students.',
-    imageUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80&w=800'
+    title: 'Annual Student Science Project & Innovation Exhibition',
+    date: 'August 12, 2026',
+    category: 'Science Project',
+    summary: 'Our talented students from Classes 6-12 showcased innovative working science projects, hydraulic models, solar energy systems, and smart robotics prototypes.',
+    content: 'GP Academy hosted its grand Annual Science Project & Innovation Fair. Over 60 working models were presented by students covering renewable solar power grids, automated drip irrigation, working hydraulic lift bridges, environmental pollution sensors, and AI-powered robotics kits. Parents and visiting chief guests highly appreciated the practical problem-solving skills and scientific creativity displayed by our young innovators.',
+    imageUrl: 'https://images.unsplash.com/photo-1507537297725-24a1c029d3ca?auto=format&fit=crop&q=80&w=800'
   }
 ];
 

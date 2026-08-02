@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { ActivePage } from '../types';
 import { GALLERY_IMAGES } from '../data/content';
+import ImageLightbox from '../components/ImageLightbox';
 import { 
   CheckCircle, 
   Globe, 
@@ -125,7 +126,7 @@ export default function Home({ setActivePage, onOpenApplyModal }: HomeProps) {
       name: "Rameshwar Tripathi",
       relation: "Father of Gauri, Class XII",
       rating: 5,
-      text: "A pure legacy of educational excellence. GP Academy prioritizes student safety with strict bus tracking and fully monitored campus. Peace of mind for us parents.",
+      text: "A pure legacy of educational excellence. GP Academy prioritizes student safety with a fully monitored campus and secure gated environment. Peace of mind for us parents.",
       tag: "Infrastructure",
       date: "January 2026"
     },
@@ -245,8 +246,7 @@ export default function Home({ setActivePage, onOpenApplyModal }: HomeProps) {
   const [isCoachingSubmitted, setIsCoachingSubmitted] = React.useState(false);
 
   // Gallery Lightbox states for homepage
-  const [activeHomeLightboxImg, setActiveHomeLightboxImg] = React.useState<string | null>(null);
-  const [activeHomeLightboxTitle, setActiveHomeLightboxTitle] = React.useState('');
+  const [homeLightboxIndex, setHomeLightboxIndex] = React.useState<number | null>(null);
 
   // FAQ accordion state
   const [openFaqIndex, setOpenFaqIndex] = React.useState<number | null>(0);
@@ -398,150 +398,152 @@ export default function Home({ setActivePage, onOpenApplyModal }: HomeProps) {
 
 
       {/* Excellence Numbers */}
-      <section className="bg-gradient-to-br from-[#1A325D] to-[#2A4E8C] text-white" style={{ height: '105px', paddingTop: '0px' }}>
-        <div className="max-w-7xl mx-auto px-4 md:px-8 h-full flex items-center">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 text-center w-full" style={{ fontSize: '4px', lineHeight: '22px' }}>
+      <section className="bg-gradient-to-br from-[#1A325D] to-[#2A4E8C] text-white py-8 sm:py-12">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 text-center w-full">
             <motion.div 
-              className="p-1 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-colors cursor-default"
+              className="p-4 rounded-2xl bg-white/5 border border-white/10 transition-all cursor-default flex flex-col items-center justify-center min-h-[100px]"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               whileHover={{ scale: 1.05, y: -4 }}
               transition={{ type: 'spring', stiffness: 180, damping: 12 }}
-              style={{ paddingTop: '8px', marginTop: '0px', lineHeight: '28px' }}
             >
-              <div className="font-bold text-[#FFC907]" style={{ fontSize: '40px' }}>14+</div>
-              <p className="text-[10px] uppercase tracking-widest opacity-80">Grades (K-12)</p>
+              <div className="font-extrabold text-[#FFC907] text-2xl sm:text-4xl mb-1">14+</div>
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-white/90">Grades (K-12)</p>
             </motion.div>
 
             <motion.div 
-              className="p-1 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-colors cursor-default"
+              className="p-4 rounded-2xl bg-white/5 border border-white/10 transition-all cursor-default flex flex-col items-center justify-center min-h-[100px]"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               whileHover={{ scale: 1.05, y: -4 }}
               transition={{ type: 'spring', stiffness: 180, damping: 12, delay: 0.1 }}
-              style={{ lineHeight: '29px' }}
             >
-              <div className="font-bold text-[#FFC907]" style={{ fontSize: '40px' }}>CBSE</div>
-              <p className="text-[10px] uppercase tracking-widest opacity-80">Curriculum</p>
+              <div className="font-extrabold text-[#FFC907] text-2xl sm:text-4xl mb-1">CBSE</div>
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-white/90">Curriculum</p>
             </motion.div>
 
             <motion.div 
-              className="p-1 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-colors cursor-default"
+              className="p-4 rounded-2xl bg-white/5 border border-white/10 transition-all cursor-default flex flex-col items-center justify-center min-h-[100px]"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               whileHover={{ scale: 1.05, y: -4 }}
               transition={{ type: 'spring', stiffness: 180, damping: 12, delay: 0.2 }}
-              style={{ lineHeight: '30px' }}
             >
-              <div className="font-bold text-[#FFC907]" style={{ fontSize: '40px' }}>100%</div>
-              <p className="text-[10px] uppercase tracking-widest opacity-80">Board Results</p>
+              <div className="font-extrabold text-[#FFC907] text-2xl sm:text-4xl mb-1">100%</div>
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-white/90">Board Results</p>
             </motion.div>
 
             <motion.div 
-              className="p-1 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-colors cursor-default"
+              className="p-4 rounded-2xl bg-white/5 border border-white/10 transition-all cursor-default flex flex-col items-center justify-center min-h-[100px]"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               whileHover={{ scale: 1.05, y: -4 }}
               transition={{ type: 'spring', stiffness: 180, damping: 12, delay: 0.3 }}
-              style={{ lineHeight: '31px' }}
             >
-              <div className="font-bold text-[#FFC907]" style={{ fontSize: '40px' }}>24/7</div>
-              <p className="text-[10px] uppercase tracking-widest opacity-80">Academic Support</p>
+              <div className="font-extrabold text-[#FFC907] text-2xl sm:text-4xl mb-1">24/7</div>
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-white/90">Academic Support</p>
             </motion.div>
           </div>
         </div>
       </section>
 
       {/* Why GP Academy */}
-      <section className="bg-gray-50 animate-fadeIn py-12 lg:py-0 lg:h-[500px] lg:pt-[3px]">
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="text-center mb-10 lg:mb-[34px] lg:h-[68px] flex flex-col justify-between">
-            <span className="text-xs md:text-sm font-bold text-[#1A325D] uppercase tracking-widest">Core Values</span>
-            <h2 className="text-2xl sm:text-3xl font-serif font-extrabold text-[#1A325D]">Why Choose Our Institution?</h2>
+      <section className="bg-gray-50 animate-fadeIn py-12 md:py-16 lg:py-20">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-10">
+          <div className="text-center space-y-3">
+            <span className="text-xs md:text-sm font-bold text-[#1A325D] uppercase tracking-widest bg-white px-3.5 py-1.5 rounded-full inline-block shadow-sm border border-gray-200">
+              Core Values
+            </span>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-extrabold text-[#1A325D]">
+              Why Choose Our Institution?
+            </h2>
             <div className="w-24 h-1.5 bg-[#FFC907] mx-auto rounded-full"></div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:h-auto pt-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
             {/* Feature 1 */}
-            <div className="relative overflow-hidden bg-white p-6 lg:p-8 rounded-2xl border border-gray-150 hover:border-[#FFC907] transition-all duration-300 group hover:-translate-y-1.5 shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-[0_24px_50px_rgba(26,50,93,0.12)] flex flex-col justify-between">
+            <div className="relative overflow-hidden bg-white p-4 sm:p-8 rounded-xl sm:rounded-2xl border border-gray-150 hover:border-[#FFC907] transition-all duration-300 group hover:-translate-y-1.5 shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgba(26,50,93,0.12)] flex flex-col justify-between">
               {/* Top accent glow line */}
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#1A325D] to-[#FFC907] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute top-0 left-0 right-0 h-1 sm:h-1.5 bg-gradient-to-r from-[#1A325D] to-[#FFC907] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               
               {/* Decorative background watermark number */}
-              <span className="text-6xl font-black text-gray-100 absolute right-4 top-3 select-none pointer-events-none group-hover:text-[#FFC907]/10 group-hover:scale-110 transition-all duration-300 z-0">01</span>
+              <span className="text-4xl sm:text-6xl font-black text-gray-100 absolute right-3 top-2 sm:right-4 sm:top-3 select-none pointer-events-none group-hover:text-[#FFC907]/10 group-hover:scale-110 transition-all duration-300 z-0">01</span>
               
-              <div className="relative z-10">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#1A325D] to-[#2A4E8C] rounded-xl flex items-center justify-center text-[#FFC907] mb-5 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-sm">
-                  <BookOpen className="w-6 h-6" />
+              <div className="relative z-10 space-y-2 sm:space-y-3">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-gradient-to-br from-[#1A325D] to-[#2A4E8C] rounded-lg sm:rounded-xl flex items-center justify-center text-[#FFC907] group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-sm">
+                  <BookOpen className="w-4 h-4 sm:w-6 sm:h-6" />
                 </div>
-                <h3 className="text-lg font-bold mb-2 text-[#1A325D] group-hover:text-[#2A4E8C] transition-colors">Rigorous Academics</h3>
-                <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">Structured learning path designed to master core concepts and excel in national board examinations.</p>
+                <h3 className="text-base sm:text-xl font-bold text-[#1A325D] group-hover:text-[#2A4E8C] transition-colors">Rigorous Academics</h3>
+                <p className="text-xs sm:text-sm text-gray-500 leading-normal sm:leading-relaxed">Structured learning path designed to master core concepts and excel in national board examinations.</p>
               </div>
 
-              <div className="mt-4 flex items-center gap-2 text-xs font-bold text-[#1A325D] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300">
+              <div className="mt-3 sm:mt-6 flex items-center gap-2 text-[11px] sm:text-xs font-bold text-[#1A325D] opacity-90 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300">
                 <span>Learn More</span>
-                <ArrowRight className="w-4 h-4 text-[#FFC907]" />
+                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FFC907]" />
               </div>
             </div>
             
             {/* Feature 2 */}
-            <div className="relative overflow-hidden bg-white p-6 lg:p-8 rounded-2xl border border-gray-150 hover:border-[#FFC907] transition-all duration-300 group hover:-translate-y-1.5 shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-[0_24px_50px_rgba(26,50,93,0.12)] flex flex-col justify-between">
+            <div className="relative overflow-hidden bg-white p-4 sm:p-8 rounded-xl sm:rounded-2xl border border-gray-150 hover:border-[#FFC907] transition-all duration-300 group hover:-translate-y-1.5 shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgba(26,50,93,0.12)] flex flex-col justify-between">
               {/* Top accent glow line */}
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#1A325D] to-[#FFC907] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute top-0 left-0 right-0 h-1 sm:h-1.5 bg-gradient-to-r from-[#1A325D] to-[#FFC907] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               
               {/* Decorative background watermark number */}
-              <span className="text-6xl font-black text-gray-100 absolute right-4 top-3 select-none pointer-events-none group-hover:text-[#FFC907]/10 group-hover:scale-110 transition-all duration-300 z-0">02</span>
+              <span className="text-4xl sm:text-6xl font-black text-gray-100 absolute right-3 top-2 sm:right-4 sm:top-3 select-none pointer-events-none group-hover:text-[#FFC907]/10 group-hover:scale-110 transition-all duration-300 z-0">02</span>
               
-              <div className="relative z-10">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#1A325D] to-[#2A4E8C] rounded-xl flex items-center justify-center text-[#FFC907] mb-5 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-sm">
-                  <Compass className="w-6 h-6" />
+              <div className="relative z-10 space-y-2 sm:space-y-3">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-gradient-to-br from-[#1A325D] to-[#2A4E8C] rounded-lg sm:rounded-xl flex items-center justify-center text-[#FFC907] group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-sm">
+                  <Compass className="w-4 h-4 sm:w-6 sm:h-6" />
                 </div>
-                <h3 className="text-lg font-bold mb-2 text-[#1A325D] group-hover:text-[#2A4E8C] transition-colors">Holistic Development</h3>
-                <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">Focus on physical education, mental well-being, and emotional intelligence for well-rounded growth.</p>
+                <h3 className="text-base sm:text-xl font-bold text-[#1A325D] group-hover:text-[#2A4E8C] transition-colors">Holistic Development</h3>
+                <p className="text-xs sm:text-sm text-gray-500 leading-normal sm:leading-relaxed">Focus on physical education, mental well-being, and emotional intelligence for well-rounded growth.</p>
               </div>
 
-              <div className="mt-4 flex items-center gap-2 text-xs font-bold text-[#1A325D] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300">
+              <div className="mt-3 sm:mt-6 flex items-center gap-2 text-[11px] sm:text-xs font-bold text-[#1A325D] opacity-90 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300">
                 <span>Learn More</span>
-                <ArrowRight className="w-4 h-4 text-[#FFC907]" />
+                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FFC907]" />
               </div>
             </div>
             
             {/* Feature 3 */}
-            <div className="relative overflow-hidden bg-white p-6 lg:p-8 rounded-2xl border border-gray-150 hover:border-[#FFC907] transition-all duration-300 group hover:-translate-y-1.5 shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-[0_24px_50px_rgba(26,50,93,0.12)] flex flex-col justify-between">
+            <div className="relative overflow-hidden bg-white p-4 sm:p-8 rounded-xl sm:rounded-2xl border border-gray-150 hover:border-[#FFC907] transition-all duration-300 group hover:-translate-y-1.5 shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgba(26,50,93,0.12)] flex flex-col justify-between">
               {/* Top accent glow line */}
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#1A325D] to-[#FFC907] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute top-0 left-0 right-0 h-1 sm:h-1.5 bg-gradient-to-r from-[#1A325D] to-[#FFC907] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               
               {/* Decorative background watermark number */}
-              <span className="text-6xl font-black text-gray-100 absolute right-4 top-3 select-none pointer-events-none group-hover:text-[#FFC907]/10 group-hover:scale-110 transition-all duration-300 z-0">03</span>
+              <span className="text-4xl sm:text-6xl font-black text-gray-100 absolute right-3 top-2 sm:right-4 sm:top-3 select-none pointer-events-none group-hover:text-[#FFC907]/10 group-hover:scale-110 transition-all duration-300 z-0">03</span>
               
-              <div className="relative z-10">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#1A325D] to-[#2A4E8C] rounded-xl flex items-center justify-center text-[#FFC907] mb-5 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-sm">
-                  <Beaker className="w-6 h-6" />
+              <div className="relative z-10 space-y-2 sm:space-y-3">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 bg-gradient-to-br from-[#1A325D] to-[#2A4E8C] rounded-lg sm:rounded-xl flex items-center justify-center text-[#FFC907] group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-sm">
+                  <Beaker className="w-4 h-4 sm:w-6 sm:h-6" />
                 </div>
-                <h3 className="text-lg font-bold mb-2 text-[#1A325D] group-hover:text-[#2A4E8C] transition-colors">Modern Facilities</h3>
-                <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">Advanced science labs, computer centers, and digital smart classes to foster innovation.</p>
+                <h3 className="text-base sm:text-xl font-bold text-[#1A325D] group-hover:text-[#2A4E8C] transition-colors">Modern Facilities</h3>
+                <p className="text-xs sm:text-sm text-gray-500 leading-normal sm:leading-relaxed">Advanced science labs, computer centers, and digital smart classes to foster innovation.</p>
               </div>
 
-              <div className="mt-4 flex items-center gap-2 text-xs font-bold text-[#1A325D] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300">
+              <div className="mt-3 sm:mt-6 flex items-center gap-2 text-[11px] sm:text-xs font-bold text-[#1A325D] opacity-90 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300">
                 <span>Learn More</span>
-                <ArrowRight className="w-4 h-4 text-[#FFC907]" />
+                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FFC907]" />
               </div>
             </div>
           </div>
 
           {/* Referral Banner */}
-          <div className="mt-12 lg:mt-[26px] bg-gray-200/60 rounded-3xl p-6 md:p-8 lg:pt-[14px] lg:pb-[15px] lg:mb-0 flex flex-col md:flex-row items-center justify-between gap-6 border-l-8 border-[#FFC907]">
-            <div className="space-y-1.5">
-              <h3 className="text-lg font-bold text-[#1A325D]">Parents Admission Promotion Scheme</h3>
-              <p className="text-xs sm:text-sm text-gray-600">June se August tak tuition fees bilkul free, agar koi parents 3 students ka admission karwate hain! (Get 100% tuition fee exemption from June to August for securing admission of 3 students.)</p>
+          <div className="bg-gradient-to-r from-gray-100 to-gray-200/80 rounded-2xl sm:rounded-3xl p-5 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 border-l-8 border-[#FFC907] shadow-sm">
+            <div className="space-y-2 max-w-3xl">
+              <h3 className="text-base sm:text-xl font-extrabold text-[#1A325D]">Parents Admission Promotion Scheme</h3>
+              <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">
+                June se August tak tuition fees bilkul free, agar koi parents 3 students ka admission karwate hain! <span className="block mt-1 text-gray-500 text-[11px] sm:text-xs">(Get 100% tuition fee exemption from June to August for securing admission of 3 students.)</span>
+              </p>
             </div>
             <button 
               onClick={() => setActivePage('contact')}
-              className="bg-[#1A325D] text-white px-6 py-3 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap hover:bg-opacity-90 transition-all cursor-pointer shadow-md"
+              className="w-full md:w-auto bg-[#1A325D] text-white px-6 py-3.5 rounded-xl font-bold text-xs sm:text-sm hover:bg-[#2A4E8C] transition-all cursor-pointer shadow-md text-center shrink-0 active:scale-95"
             >
               Learn More
             </button>
@@ -962,32 +964,6 @@ export default function Home({ setActivePage, onOpenApplyModal }: HomeProps) {
             </div>
 
             <div className="flex items-center gap-4">
-              {/* Sliding Navigation Buttons */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setMarqueeDirection('right')}
-                  className={`w-10 h-10 rounded-full border transition-all shadow-sm flex items-center justify-center cursor-pointer active:scale-95 ${
-                    marqueeDirection === 'right'
-                      ? 'bg-[#1A325D] text-white border-[#1A325D]'
-                      : 'border-gray-200 bg-white text-[#1A325D] hover:bg-[#1A325D] hover:text-white hover:border-[#1A325D]'
-                  }`}
-                  title="Slide to Right"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setMarqueeDirection('left')}
-                  className={`w-10 h-10 rounded-full border transition-all shadow-sm flex items-center justify-center cursor-pointer active:scale-95 ${
-                    marqueeDirection === 'left'
-                      ? 'bg-[#1A325D] text-white border-[#1A325D]'
-                      : 'border-gray-200 bg-white text-[#1A325D] hover:bg-[#1A325D] hover:text-white hover:border-[#1A325D]'
-                  }`}
-                  title="Slide to Left"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-
               <button
                 onClick={() => setIsFormOpen(!isFormOpen)}
                 className="flex items-center gap-2 bg-[#FFC907] text-[#1A325D] px-5 py-2.5 rounded-full font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
@@ -1163,50 +1139,50 @@ export default function Home({ setActivePage, onOpenApplyModal }: HomeProps) {
                 className="flex gap-6 w-max"
               >
                 {/* First Set of Cards */}
-                <div className={`flex gap-6 shrink-0 ${marqueeDirection === 'left' ? 'animate-marquee-left' : 'animate-marquee-right'}`}>
+                <div className={`flex gap-3 sm:gap-6 shrink-0 ${marqueeDirection === 'left' ? 'animate-marquee-left' : 'animate-marquee-right'}`}>
                   {filteredReviews.map((review, idx) => (
                     <div
                       key={`review-1-${review.name}-${idx}`}
-                      className="flex-shrink-0 w-[290px] sm:w-[360px] relative overflow-hidden bg-white p-6 rounded-2xl border border-gray-150 hover:border-[#FFC907] transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.01)] hover:shadow-[0_12px_30px_rgba(26,50,93,0.07)] flex flex-col justify-between h-[230px]"
+                      className="flex-shrink-0 w-[230px] sm:w-[360px] relative overflow-hidden bg-white p-3.5 sm:p-6 rounded-xl sm:rounded-2xl border border-gray-150 hover:border-[#FFC907] transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.01)] hover:shadow-[0_12px_30px_rgba(26,50,93,0.07)] flex flex-col justify-between h-[180px] sm:h-[230px]"
                     >
                       {/* Background quote decoration */}
-                      <Quote className="absolute right-4 bottom-4 w-10 h-10 text-gray-100/50 select-none pointer-events-none" />
+                      <Quote className="absolute right-3 bottom-3 sm:right-4 sm:bottom-4 w-6 h-6 sm:w-10 sm:h-10 text-gray-100/50 select-none pointer-events-none" />
 
-                      <div className="space-y-3">
+                      <div className="space-y-2 sm:space-y-3">
                         {/* Rating stars & tag */}
                         <div className="flex justify-between items-center">
                           <div className="flex gap-0.5 text-[#FFC907]">
                             {Array.from({ length: 5 }).map((_, i) => (
                               <Star
                                 key={i}
-                                className={`w-3.5 h-3.5 ${
+                                className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${
                                   i < review.rating ? 'fill-[#FFC907] text-[#FFC907]' : 'text-gray-200'
                                 }`}
                               />
                             ))}
                           </div>
-                          <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 rounded-md">
+                          <span className="px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 rounded">
                             {review.tag}
                           </span>
                         </div>
 
                         {/* Review Text */}
-                        <p className="text-xs sm:text-sm text-gray-600 italic leading-relaxed line-clamp-4 relative z-10">
+                        <p className="text-[11px] sm:text-sm text-gray-600 italic leading-snug sm:leading-relaxed line-clamp-3 sm:line-clamp-4 relative z-10">
                           "{review.text}"
                         </p>
                       </div>
 
                       {/* Footer parent details */}
-                      <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center relative z-10">
+                      <div className="mt-2 sm:mt-4 pt-2 sm:pt-3 border-t border-gray-100 flex justify-between items-center relative z-10">
                         <div className="space-y-0.5 min-w-0">
-                          <h4 className="font-bold text-xs sm:text-sm text-[#1A325D] truncate">
+                          <h4 className="font-bold text-[11px] sm:text-sm text-[#1A325D] truncate">
                             {review.name}
                           </h4>
-                          <p className="text-[10px] sm:text-xs text-gray-400 truncate">
+                          <p className="text-[9px] sm:text-xs text-gray-400 truncate">
                             {review.relation}
                           </p>
                         </div>
-                        <span className="text-[10px] text-gray-400 font-mono flex-shrink-0">
+                        <span className="text-[9px] sm:text-[10px] text-gray-400 font-mono flex-shrink-0">
                           {review.date}
                         </span>
                       </div>
@@ -1215,50 +1191,50 @@ export default function Home({ setActivePage, onOpenApplyModal }: HomeProps) {
                 </div>
 
                 {/* Duplicate Set of Cards for Seamless Loop */}
-                <div className={`flex gap-6 shrink-0 ${marqueeDirection === 'left' ? 'animate-marquee-left' : 'animate-marquee-right'}`} aria-hidden="true">
+                <div className={`flex gap-3 sm:gap-6 shrink-0 ${marqueeDirection === 'left' ? 'animate-marquee-left' : 'animate-marquee-right'}`} aria-hidden="true">
                   {filteredReviews.map((review, idx) => (
                     <div
                       key={`review-2-${review.name}-${idx}`}
-                      className="flex-shrink-0 w-[290px] sm:w-[360px] relative overflow-hidden bg-white p-6 rounded-2xl border border-gray-150 hover:border-[#FFC907] transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.01)] hover:shadow-[0_12px_30px_rgba(26,50,93,0.07)] flex flex-col justify-between h-[230px]"
+                      className="flex-shrink-0 w-[230px] sm:w-[360px] relative overflow-hidden bg-white p-3.5 sm:p-6 rounded-xl sm:rounded-2xl border border-gray-150 hover:border-[#FFC907] transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.01)] hover:shadow-[0_12px_30px_rgba(26,50,93,0.07)] flex flex-col justify-between h-[180px] sm:h-[230px]"
                     >
                       {/* Background quote decoration */}
-                      <Quote className="absolute right-4 bottom-4 w-10 h-10 text-gray-100/50 select-none pointer-events-none" />
+                      <Quote className="absolute right-3 bottom-3 sm:right-4 sm:bottom-4 w-6 h-6 sm:w-10 sm:h-10 text-gray-100/50 select-none pointer-events-none" />
 
-                      <div className="space-y-3">
+                      <div className="space-y-2 sm:space-y-3">
                         {/* Rating stars & tag */}
                         <div className="flex justify-between items-center">
                           <div className="flex gap-0.5 text-[#FFC907]">
                             {Array.from({ length: 5 }).map((_, i) => (
                               <Star
                                 key={i}
-                                className={`w-3.5 h-3.5 ${
+                                className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${
                                   i < review.rating ? 'fill-[#FFC907] text-[#FFC907]' : 'text-gray-200'
                                 }`}
                               />
                             ))}
                           </div>
-                          <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 rounded-md">
+                          <span className="px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 rounded">
                             {review.tag}
                           </span>
                         </div>
 
                         {/* Review Text */}
-                        <p className="text-xs sm:text-sm text-gray-600 italic leading-relaxed line-clamp-4 relative z-10">
+                        <p className="text-[11px] sm:text-sm text-gray-600 italic leading-snug sm:leading-relaxed line-clamp-3 sm:line-clamp-4 relative z-10">
                           "{review.text}"
                         </p>
                       </div>
 
                       {/* Footer parent details */}
-                      <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center relative z-10">
+                      <div className="mt-2 sm:mt-4 pt-2 sm:pt-3 border-t border-gray-100 flex justify-between items-center relative z-10">
                         <div className="space-y-0.5 min-w-0">
-                          <h4 className="font-bold text-xs sm:text-sm text-[#1A325D] truncate">
+                          <h4 className="font-bold text-[11px] sm:text-sm text-[#1A325D] truncate">
                             {review.name}
                           </h4>
-                          <p className="text-[10px] sm:text-xs text-gray-400 truncate">
+                          <p className="text-[9px] sm:text-xs text-gray-400 truncate">
                             {review.relation}
                           </p>
                         </div>
-                        <span className="text-[10px] text-gray-400 font-mono flex-shrink-0">
+                        <span className="text-[9px] sm:text-[10px] text-gray-400 font-mono flex-shrink-0">
                           {review.date}
                         </span>
                       </div>
@@ -1302,10 +1278,7 @@ export default function Home({ setActivePage, onOpenApplyModal }: HomeProps) {
             {GALLERY_IMAGES.slice(0, 4).map((img, idx) => (
               <motion.div
                 key={img.id}
-                onClick={() => {
-                  setActiveHomeLightboxImg(img.imageUrl);
-                  setActiveHomeLightboxTitle(img.title);
-                }}
+                onClick={() => setHomeLightboxIndex(idx)}
                 className="group bg-white rounded-2xl border border-gray-150 overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer relative"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -1356,60 +1329,39 @@ export default function Home({ setActivePage, onOpenApplyModal }: HomeProps) {
         </div>
       </section>
 
-      {/* Lightbox Modal for Homepage Gallery */}
-      {activeHomeLightboxImg && (
-        <div
-          className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-4 animate-fadeIn"
-          onClick={() => setActiveHomeLightboxImg(null)}
-        >
-          <button
-            onClick={() => setActiveHomeLightboxImg(null)}
-            className="absolute top-6 right-6 p-2.5 text-white/70 hover:text-white bg-white/10 rounded-full hover:scale-105 transition-all z-[110]"
-          >
-            <X className="w-6 h-6" />
-          </button>
-          <div className="max-w-4xl max-h-[80vh] overflow-hidden rounded-2xl shadow-2xl border border-white/10 relative">
-            <img
-              src={activeHomeLightboxImg}
-              alt={activeHomeLightboxTitle}
-              className="w-full h-auto max-h-[80vh] object-contain"
-              referrerPolicy="no-referrer"
-            />
-          </div>
-          <p className="text-[#FFC907] font-sans font-black mt-4 text-base tracking-wide text-center max-w-xl">
-            {activeHomeLightboxTitle}
-          </p>
-        </div>
-      )}
+      {/* Interactive Lightbox Modal for Homepage Gallery */}
+      <ImageLightbox
+        isOpen={homeLightboxIndex !== null}
+        onClose={() => setHomeLightboxIndex(null)}
+        images={GALLERY_IMAGES.slice(0, 4)}
+        currentIndex={homeLightboxIndex ?? 0}
+        onNavigate={(newIdx) => setHomeLightboxIndex(newIdx)}
+      />
 
       {/* Frequently Asked Questions (FAQ) Section */}
-      <section className="py-20 bg-gray-50/70 border-t border-b border-gray-150">
-        <div className="max-w-5xl mx-auto px-4 md:px-8 space-y-12">
+      <section className="py-10 sm:py-20 bg-gray-50/70 border-t border-b border-gray-150">
+        <div className="max-w-5xl mx-auto px-4 md:px-8 space-y-6 sm:space-y-12">
           
           {/* Header */}
-          <div className="text-center space-y-4 max-w-2xl mx-auto">
-            <span className="text-xs md:text-sm font-bold text-[#1A325D] uppercase tracking-[0.2em] bg-white px-3.5 py-1.5 rounded-full inline-block shadow-sm border border-gray-200/80">
+          <div className="text-center space-y-2.5 sm:space-y-4 max-w-2xl mx-auto">
+            <span className="text-[10px] sm:text-xs md:text-sm font-bold text-[#1A325D] uppercase tracking-[0.2em] bg-white px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full inline-block shadow-sm border border-gray-200/80">
               Got Questions?
             </span>
-            <h2 className="text-3xl sm:text-4xl font-serif font-extrabold text-[#1A325D] tracking-tight">
+            <h2 className="text-2xl sm:text-4xl font-serif font-extrabold text-[#1A325D] tracking-tight">
               Frequently Asked Questions
             </h2>
             <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
               Find quick answers regarding admissions, special fee schemes, curriculum, coaching programs, and campus facilities.
             </p>
-            <div className="w-20 h-1.5 bg-[#FFC907] mx-auto rounded-full"></div>
+            <div className="w-16 sm:w-20 h-1 sm:h-1.5 bg-[#FFC907] mx-auto rounded-full"></div>
           </div>
 
-          {/* FAQ Accordion List (5 Questions) */}
-          <div className="space-y-4">
+          {/* FAQ Accordion List - Simple clean style without cards */}
+          <div className="divide-y divide-gray-200 border-t border-b border-gray-200">
             {[
               {
                 q: "What is the admission process and age eligibility for Nursery to Class 12?",
                 a: "Admissions at GP Academy are open from Nursery to Class 12. For Nursery, the child must be at least 3+ years old by March 31st. For Classes 1 to 12, admissions are processed based on previous school academic records and an informal interaction session with the student and parents. You can apply online or visit our school office during working hours."
-              },
-              {
-                q: "What is the June to August Parents Admission Promotion Scheme?",
-                a: "Under our special scheme, new admissions during June to August get 100% Free Admission Fees along with a complimentary school tie & belt! Additionally, if a parent refers and secures admissions for 3 students, they receive 100% tuition fee exemption for 3 months (June to August)."
               },
               {
                 q: "Which curriculum and board standards are followed at GP Academy?",
@@ -1426,37 +1378,28 @@ export default function Home({ setActivePage, onOpenApplyModal }: HomeProps) {
             ].map((faq, idx) => {
               const isOpen = openFaqIndex === idx;
               return (
-                <div
-                  key={idx}
-                  className={`bg-white rounded-2xl border transition-all duration-300 overflow-hidden ${
-                    isOpen 
-                      ? 'border-[#1A325D] shadow-md ring-1 ring-[#1A325D]/10' 
-                      : 'border-gray-200 hover:border-gray-300 shadow-sm'
-                  }`}
-                >
+                <div key={idx} className="py-4 sm:py-5">
                   <button
                     onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
-                    className="w-full text-left p-5 sm:p-6 flex items-center justify-between gap-4 cursor-pointer focus:outline-none"
+                    className="w-full text-left flex items-center justify-between gap-3 cursor-pointer focus:outline-none group"
                   >
-                    <div className="flex items-center gap-3.5">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-                        isOpen ? 'bg-[#1A325D] text-[#FFC907]' : 'bg-gray-100 text-[#1A325D]'
-                      }`}>
-                        <HelpCircle className="w-4 h-4" />
-                      </div>
+                    <div className="flex items-center gap-3">
+                      <HelpCircle className={`w-4 h-4 sm:w-5 sm:h-5 shrink-0 transition-colors ${
+                        isOpen ? 'text-[#1A325D]' : 'text-gray-400 group-hover:text-[#1A325D]'
+                      }`} />
                       <h3 className="font-sans font-bold text-sm sm:text-base text-[#1A325D] leading-snug">
                         {faq.q}
                       </h3>
                     </div>
-                    <div className={`p-1.5 rounded-full shrink-0 transition-transform duration-300 ${
-                      isOpen ? 'rotate-180 bg-gray-100 text-[#1A325D]' : 'text-gray-400'
+                    <div className={`p-1 rounded-full shrink-0 transition-transform duration-300 ${
+                      isOpen ? 'rotate-180 text-[#1A325D]' : 'text-gray-400 group-hover:text-[#1A325D]'
                     }`}>
-                      <ChevronDown className="w-5 h-5" />
+                      <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
                   </button>
 
                   {isOpen && (
-                    <div className="px-5 pb-6 sm:px-6 sm:pb-6 text-xs sm:text-sm text-gray-600 leading-relaxed border-t border-gray-100 pt-4 animate-fadeIn pl-16">
+                    <div className="mt-2.5 text-xs sm:text-sm text-gray-600 leading-relaxed pl-7 sm:pl-8 animate-fadeIn">
                       {faq.a}
                     </div>
                   )}

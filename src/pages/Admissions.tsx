@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { SCHOOL_DETAILS } from '../data/content';
 import { AdmissionEnquiry } from '../types';
-import AdmissionTracker from '../components/AdmissionTracker';
-import { CheckCircle, AlertCircle, FileText, Send, HelpCircle, ArrowRight, ClipboardCheck, Sparkles, Gift } from 'lucide-react';
+import { CheckCircle, AlertCircle, FileText, Send, HelpCircle, ClipboardCheck, Sparkles, Gift } from 'lucide-react';
 
 export default function Admissions() {
   // Form State
@@ -18,8 +17,6 @@ export default function Admissions() {
   // UI feedback state
   const [submittedId, setSubmittedId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
-
-  const [activeTab, setActiveTab] = useState<'apply' | 'track'>('apply');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,7 +88,7 @@ export default function Admissions() {
             Apply Online & Exclusive Offers
           </h1>
           <p className="text-gray-300 text-sm max-w-xl mx-auto">
-            Admissions for Academic Session 2026-27 are now open. Simple, quick submission with full tracking metrics.
+            Admissions for Academic Session 2026-27 are now open. Simple and quick form submission.
           </p>
         </div>
       </section>
@@ -155,74 +152,41 @@ export default function Admissions() {
         </div>
       </section>
 
-      {/* Tabs Menu for Apply or Track */}
-      <section className="max-w-4xl mx-auto px-4">
-        <div className="flex bg-gray-100 p-1.5 rounded-xl border border-gray-200">
-          <button
-            onClick={() => setActiveTab('apply')}
-            className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider rounded-lg transition-all ${
-              activeTab === 'apply'
-                ? 'bg-white text-[#001c46] shadow-sm'
-                : 'text-gray-500 hover:text-gray-800'
-            }`}
-          >
-            1. Fill Enquiry Form
-          </button>
-          <button
-            onClick={() => setActiveTab('track')}
-            className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider rounded-lg transition-all ${
-              activeTab === 'track'
-                ? 'bg-white text-[#001c46] shadow-sm'
-                : 'text-gray-500 hover:text-gray-800'
-            }`}
-          >
-            2. Track Live Submission
-          </button>
-        </div>
-      </section>
-
       {/* Main Admissions Interface */}
       <section className="max-w-7xl mx-auto px-4 md:px-8">
-        {activeTab === 'apply' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-            {/* Form Side */}
-            <div className="lg:col-span-7 bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
-              <div>
-                <h3 className="text-2xl font-sans font-black text-[#001c46] mb-1">
-                  Online Admission Enquiry
-                </h3>
-                <p className="text-xs text-gray-500">
-                  Please provide details. All submitted enquiries can be monitored under the 'Track' portal above.
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+          {/* Form Side */}
+          <div className="lg:col-span-7 bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+            <div>
+              <h3 className="text-2xl font-sans font-black text-[#001c46] mb-1">
+                Online Admission Enquiry
+              </h3>
+              <p className="text-xs text-gray-500">
+                Please fill in the form below to initiate your ward's admission process.
+              </p>
+            </div>
+
+            {/* Feedback messages */}
+            {errorMsg && (
+              <div className="p-4 bg-red-50 border-l-4 border-red-500 text-red-800 rounded-r-xl text-xs font-bold flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
+            {submittedId && (
+              <div className="p-5 bg-green-50 border-l-4 border-green-500 text-green-900 rounded-r-xl space-y-2">
+                <div className="flex items-center gap-2 text-sm font-black">
+                  <CheckCircle className="w-5 h-5 shrink-0 text-green-600" />
+                  <span>Enquiry Submitted Successfully!</span>
+                </div>
+                <p className="text-xs text-green-800">
+                  Your reference ID is <strong className="font-mono text-xs">{submittedId}</strong>. Our admissions counselor will get in touch with you shortly.
                 </p>
               </div>
+            )}
 
-              {/* Feedback messages */}
-              {errorMsg && (
-                <div className="p-4 bg-red-50 border-l-4 border-red-500 text-red-800 rounded-r-xl text-xs font-bold flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5 shrink-0" />
-                  <span>{errorMsg}</span>
-                </div>
-              )}
-
-              {submittedId && (
-                <div className="p-5 bg-green-50 border-l-4 border-green-500 text-green-900 rounded-r-xl space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-black">
-                    <CheckCircle className="w-5 h-5 shrink-0 text-green-600" />
-                    <span>Enquiry Logged Successfully!</span>
-                  </div>
-                  <p className="text-xs text-green-800">
-                    Your custom registration lookup ID is <strong className="font-mono text-xs">{submittedId}</strong>. We saved this to your local web container. Click the <strong>"Track Live Submission"</strong> tab above to view progress, or edit fields!
-                  </p>
-                  <button
-                    onClick={() => setActiveTab('track')}
-                    className="inline-flex items-center gap-1 text-xs font-extrabold text-[#001c46] underline hover:no-underline"
-                  >
-                    Go to tracker now <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-[#001c46] block">
@@ -442,11 +406,6 @@ export default function Admissions() {
               </div>
             </div>
           </div>
-        ) : (
-          <div className="space-y-8">
-            <AdmissionTracker />
-          </div>
-        )}
       </section>
 
       {/* Frequently Asked Questions */}

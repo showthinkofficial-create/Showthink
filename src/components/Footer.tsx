@@ -16,9 +16,16 @@ export default function Footer({ setActivePage }: FooterProps) {
           
           {/* Brand Card */}
           <div className="space-y-6">
-            <div className="flex items-center gap-3">
-              <Logo size={56} />
-              <span className="font-sans font-extrabold text-white text-xl tracking-wide">
+            <div 
+              className="flex items-center gap-3 cursor-pointer group"
+              onClick={() => {
+                setActivePage('home');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              title="Go to Home"
+            >
+              <Logo size={56} className="group-hover:scale-105 transition-transform duration-300" />
+              <span className="font-sans font-extrabold text-white text-xl tracking-wide group-hover:text-[#FFC907] transition-colors">
                 GP ACADEMY
               </span>
             </div>

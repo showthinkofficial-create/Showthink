@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { GALLERY_IMAGES } from '../data/content';
-import { Camera, Image as ImageIcon, Sparkles, X, ZoomIn } from 'lucide-react';
+import { ZoomIn } from 'lucide-react';
+import ImageLightbox from '../components/ImageLightbox';
 
 type FilterType = 'All' | 'Campus' | 'Activities' | 'Sports' | 'Labs' | 'Celebrations';
 
 export default function Gallery() {
   const [activeFilter, setActiveFilter] = useState<FilterType>('All');
-  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
-  const [lightboxTitle, setLightboxTitle] = useState('');
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const categories: FilterType[] = ['All', 'Campus', 'Activities', 'Sports', 'Labs', 'Celebrations'];
 
@@ -38,7 +38,10 @@ export default function Gallery() {
           {categories.map((cat) => (
             <button
               key={cat}
-              onClick={() => setActiveFilter(cat)}
+              onClick={() => {
+                setActiveFilter(cat);
+                setLightboxIndex(null);
+              }}
               className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
                 activeFilter === cat
                   ? 'bg-[#001c46] text-[#FFC907] shadow-sm'
@@ -52,13 +55,10 @@ export default function Gallery() {
 
         {/* Gallery Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {filteredImages.map((img) => (
+          {filteredImages.map((img, idx) => (
             <div
               key={img.id}
-              onClick={() => {
-                setLightboxImg(img.imageUrl);
-                setLightboxTitle(img.title);
-              }}
+              onClick={() => setLightboxIndex(idx)}
               className="group bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer relative"
             >
               <div className="h-56 w-full overflow-hidden bg-gray-100 relative">
@@ -66,6 +66,7 @@ export default function Gallery() {
                   src={img.imageUrl}
                   alt={img.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  referrerPolicy="no-referrer"
                 />
                 {/* Hover mask with zoom icon */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -88,30 +89,14 @@ export default function Gallery() {
         </div>
       </section>
 
-      {/* Lightbox Modal */}
-      {lightboxImg && (
-        <div
-          className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4 animate-fadeIn"
-          onClick={() => setLightboxImg(null)}
-        >
-          <button
-            onClick={() => setLightboxImg(null)}
-            className="absolute top-6 right-6 p-2 text-white/70 hover:text-white bg-white/10 rounded-full hover:scale-105 transition-all"
-          >
-            <X className="w-6 h-6" />
-          </button>
-          <div className="max-w-4xl max-h-[80vh] overflow-hidden rounded-2xl shadow-2xl border border-white/10">
-            <img
-              src={lightboxImg}
-              alt={lightboxTitle}
-              className="w-full h-auto max-h-[80vh] object-contain"
-            />
-          </div>
-          <p className="text-[#FFC907] font-sans font-black mt-4 text-base tracking-wide text-center">
-            {lightboxTitle}
-          </p>
-        </div>
-      )}
+      {/* Interactive Lightbox Modal */}
+      <ImageLightbox
+        isOpen={lightboxIndex !== null}
+        onClose={() => setLightboxIndex(null)}
+        images={filteredImages}
+        currentIndex={lightboxIndex ?? 0}
+        onNavigate={(newIdx) => setLightboxIndex(newIdx)}
+      />
     </div>
   );
 }

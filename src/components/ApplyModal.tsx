@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Send, CheckCircle, AlertCircle, Sparkles, MessageSquare, Phone } from 'lucide-react';
 import { collection, doc, setDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { AdmissionEnquiry } from '../types';
 
 interface ApplyModalProps {
@@ -54,7 +54,7 @@ export default function ApplyModal({ isOpen, onClose }: ApplyModalProps) {
     setErrorMsg('');
 
     // Field Validation
-    if (!studentName.trim() || !parentName.trim() || !phone.trim() || !currentClass || !admissionClass || !area.trim() || !consent) {
+    if (!studentName.trim() || !parentName.trim() || !phone.trim() || !currentClass || !admissionClass || !area.trim()) {
       setErrorMsg('Please fill in all required fields (*).');
       return;
     }
@@ -97,8 +97,15 @@ export default function ApplyModal({ isOpen, onClose }: ApplyModalProps) {
       };
 
       // 1. Save to Firebase (Firestore)
-      const enquiryRef = doc(collection(db, 'enquiries'), enquiryId);
-      await setDoc(enquiryRef, enquiryData);
+      try {
+        const enquiryRef = doc(collection(db, 'enquiries'), enquiryId);
+        await setDoc(enquiryRef, enquiryData);
+      } catch (fsErr: any) {
+        if (fsErr?.code === 'permission-denied' || fsErr?.message?.includes('permission')) {
+          handleFirestoreError(fsErr, OperationType.WRITE, `enquiries/${enquiryId}`);
+        }
+        console.warn('Firestore write warning:', fsErr);
+      }
 
       // 2. Save locally for fallback tracking
       const existingRaw = localStorage.getItem('gp_academy_enquiries');
@@ -401,66 +408,22 @@ _Submitted via Online Application Portal_`;
                 </div>
               </div>
 
-              {/* Row 6: Preferred Contact Method & Message */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <div className="space-y-0.5">
-                  <label className="text-[9px] font-black text-[#001c46] uppercase tracking-wide block">
-                    Preferred Contact Method *
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setPreferredContactMethod('Call')}
-                      className={`py-1 text-[11px] font-bold rounded border transition-all flex items-center justify-center gap-1 ${
-                        preferredContactMethod === 'Call'
-                          ? 'border-[#001c46] bg-[#001c46]/5 text-[#001c46]'
-                          : 'border-gray-200 text-gray-500 hover:bg-gray-50'
-                      }`}
-                    >
-                      <Phone className="w-3 h-3" /> Call
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPreferredContactMethod('WhatsApp')}
-                      className={`py-1 text-[11px] font-bold rounded border transition-all flex items-center justify-center gap-1 ${
-                        preferredContactMethod === 'WhatsApp'
-                          ? 'border-[#001c46] bg-[#001c46]/5 text-[#001c46]'
-                          : 'border-gray-200 text-gray-500 hover:bg-gray-50'
-                      }`}
-                    >
-                      <MessageSquare className="w-3 h-3" /> WhatsApp
-                    </button>
-                  </div>
-                </div>
-                <div className="space-y-0.5">
-                  <label className="text-[9px] font-black text-[#001c46] uppercase tracking-wide">
-                    Message / Remarks
-                  </label>
-                  <textarea
-                    rows={1}
-                    placeholder="Message"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    className="w-full px-2.5 py-1 bg-gray-50 rounded border border-gray-200 focus:outline-none focus:ring-1 focus:ring-[#001c46] text-[11px]"
-                  />
-                </div>
+              {/* Row 6: Message / Remarks */}
+              <div className="space-y-0.5">
+                <label className="text-[9px] font-black text-[#001c46] uppercase tracking-wide">
+                  Message / Remarks
+                </label>
+                <textarea
+                  rows={1}
+                  placeholder="Message"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  className="w-full px-2.5 py-1 bg-gray-50 rounded border border-gray-200 focus:outline-none focus:ring-1 focus:ring-[#001c46] text-[11px]"
+                />
               </div>
 
-              {/* Consent and Submit */}
-              <div className="space-y-2 pt-1">
-                <label className="flex items-start gap-1.5 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    required
-                    checked={consent}
-                    onChange={(e) => setConsent(e.target.checked)}
-                    className="mt-0.5 h-3.5 w-3.5 accent-[#001c46] rounded border-gray-300"
-                  />
-                  <span className="text-[9px] text-gray-500 leading-tight">
-                    I agree to be contacted by GP Academy regarding admission and school information. *
-                  </span>
-                </label>
-
+              {/* Submit */}
+              <div className="pt-1">
                 <button
                   type="submit"
                   disabled={isSubmitting}

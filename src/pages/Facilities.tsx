@@ -84,21 +84,21 @@ export default function Facilities() {
         <div className="p-8 bg-gray-50 rounded-3xl border border-gray-100 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-8 space-y-4">
             <h3 className="text-xl sm:text-2xl font-sans font-black text-[#001c46]">
-              Safety, Sanitation & GPS Transport Systems
+              Safety, Sanitation & Campus Security
             </h3>
             <p className="text-sm text-gray-500 leading-relaxed">
-              We prioritize physical safety and health parameters. Our campus features 24/7 CCTV vigilance, secure gated access controls, continuous pure water supply networks, and safe school bus routes equipped with live GPS tracking trackers and supervisors.
+              We prioritize physical safety, health parameters, and child protection. Our campus features 24/7 CCTV vigilance, secure gated access controls, continuous pure water filtration, hygienic sanitation facilities, and trained security personnel.
             </p>
             <div className="flex flex-wrap gap-4 text-xs font-bold text-gray-600">
               <span className="px-3 py-1 bg-white border border-gray-200 rounded-full">✓ Complete Fire Safety Audited</span>
               <span className="px-3 py-1 bg-white border border-gray-200 rounded-full">✓ First-Aid Clinic Room on campus</span>
-              <span className="px-3 py-1 bg-white border border-gray-200 rounded-full">✓ GPS Live-tracking buses</span>
+              <span className="px-3 py-1 bg-white border border-gray-200 rounded-full">✓ 24/7 CCTV Campus Vigilance</span>
             </div>
           </div>
           <div className="lg:col-span-4 relative h-48 rounded-2xl overflow-hidden border border-gray-100 shadow">
             <img
-              src="https://images.unsplash.com/photo-1557223562-6c77ef16210f?auto=format&fit=crop&q=80&w=600"
-              alt="Safe School Transport bus"
+              src="https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&q=80&w=600"
+              alt="Safe and Secure Campus Environment"
               className="w-full h-full object-cover"
             />
           </div>

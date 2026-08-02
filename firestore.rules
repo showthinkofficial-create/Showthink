@@ -40,5 +40,9 @@ service cloud.firestore {
       allow create: if isValidId(enquiryId) && isValidEnquiry(request.resource.data);
       allow get, list, update, delete: if false; // Strict protection of parent PII
     }
+
+    match /test/{docId} {
+      allow read: if true;
+    }
   }
 }
