@@ -1,11 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NEWS_EVENTS } from '../data/content';
-import { Bell, Award, Calendar, ChevronRight, Sparkles, X, Eye } from 'lucide-react';
+import { ChevronRight, X, Calendar, Bell } from 'lucide-react';
+import { noticeService } from '../services/noticeService';
+import { Notice } from '../types/notice';
 
 export default function NewsEvents() {
   const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
+  const [publishedNotices, setPublishedNotices] = useState<any[]>(NEWS_EVENTS);
 
-  const activeNews = NEWS_EVENTS.find(item => item.id === selectedNewsId);
+  useEffect(() => {
+    async function loadLiveNotices() {
+      try {
+        const live = await noticeService.getNotices({ status: 'PUBLISHED' });
+        if (live && live.length > 0) {
+          const formatted = live.map((n: Notice) => ({
+            id: n.id,
+            title: n.title,
+            date: n.publishDate || new Date().toISOString().split('T')[0],
+            category: n.type || 'Notice',
+            summary: n.description || '',
+            content: n.description || '',
+            imageUrl: n.attachmentUrl || 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?auto=format&fit=crop&q=80&w=800'
+          }));
+          setPublishedNotices(formatted);
+        }
+      } catch (e) {
+        console.warn('Using static notices fallback:', e);
+      }
+    }
+    loadLiveNotices();
+  }, []);
+
+  const activeNews = publishedNotices.find(item => item.id === selectedNewsId);
 
   return (
     <div className="space-y-24 pb-16 animate-fadeIn">
@@ -35,7 +61,7 @@ export default function NewsEvents() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {NEWS_EVENTS.map((item) => (
+          {publishedNotices.map((item) => (
             <div
               key={item.id}
               className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg transition-all flex flex-col justify-between"
@@ -46,6 +72,7 @@ export default function NewsEvents() {
                     src={item.imageUrl}
                     alt={item.title}
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                   <div className="absolute top-4 left-4">
                     <span className="px-2.5 py-1 bg-white text-[#001c46] text-[10px] font-black uppercase tracking-wider rounded-lg shadow">
@@ -114,6 +141,7 @@ export default function NewsEvents() {
                 src={activeNews.imageUrl}
                 alt={activeNews.title}
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
             </div>
 

@@ -2,10 +2,10 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { ActivePage } from '../types';
 import { GALLERY_IMAGES } from '../data/content';
-import ImageLightbox from '../components/ImageLightbox';
 import { 
   CheckCircle, 
   Globe, 
+  MapPin,
   GraduationCap, 
   Award, 
   Compass, 
@@ -29,7 +29,6 @@ import {
   Cpu,
   Camera,
   Image as ImageIcon,
-  ZoomIn,
   X,
   ChevronDown,
   HelpCircle
@@ -326,9 +325,9 @@ export default function Home({ setActivePage, onOpenApplyModal }: HomeProps) {
                 </span>
               </div>
               <div className="bg-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-lg">
-                <Globe className="w-4 h-4 text-[#1A325D]" />
+                <MapPin className="w-4 h-4 text-[#1A325D]" />
                 <span className="text-[#1A325D] font-bold text-[11px] md:text-xs tracking-wide">
-                  Globally Recognized
+                  Noida & Gautam Buddha Nagar
                 </span>
               </div>
             </div>
@@ -669,7 +668,7 @@ export default function Home({ setActivePage, onOpenApplyModal }: HomeProps) {
       </section>
 
       {/* Coaching Classes & Entrance Prep Section */}
-      <section className="py-24 bg-[#1A325D] text-white relative overflow-hidden">
+      <section className="py-24 bg-[#1A325D] text-white relative overflow-hidden min-h-[1280.5px]">
         {/* Abstract background shapes */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-[#FFC907]/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#FFC907]/5 rounded-full blur-3xl pointer-events-none"></div>
@@ -1278,8 +1277,7 @@ export default function Home({ setActivePage, onOpenApplyModal }: HomeProps) {
             {GALLERY_IMAGES.slice(0, 4).map((img, idx) => (
               <motion.div
                 key={img.id}
-                onClick={() => setHomeLightboxIndex(idx)}
-                className="group bg-white rounded-2xl border border-gray-150 overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer relative"
+                className="group bg-white rounded-2xl border border-gray-150 overflow-hidden shadow-sm hover:shadow-lg transition-all relative"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -1292,12 +1290,6 @@ export default function Home({ setActivePage, onOpenApplyModal }: HomeProps) {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     referrerPolicy="no-referrer"
                   />
-                  {/* Hover mask with zoom icon */}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur text-white flex items-center justify-center">
-                      <ZoomIn className="w-5 h-5" />
-                    </div>
-                  </div>
                 </div>
 
                 <div className="p-4 space-y-1 bg-white">
@@ -1328,15 +1320,6 @@ export default function Home({ setActivePage, onOpenApplyModal }: HomeProps) {
 
         </div>
       </section>
-
-      {/* Interactive Lightbox Modal for Homepage Gallery */}
-      <ImageLightbox
-        isOpen={homeLightboxIndex !== null}
-        onClose={() => setHomeLightboxIndex(null)}
-        images={GALLERY_IMAGES.slice(0, 4)}
-        currentIndex={homeLightboxIndex ?? 0}
-        onNavigate={(newIdx) => setHomeLightboxIndex(newIdx)}
-      />
 
       {/* Frequently Asked Questions (FAQ) Section */}
       <section className="py-10 sm:py-20 bg-gray-50/70 border-t border-b border-gray-150">

@@ -4,7 +4,21 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ApplyModal from './components/ApplyModal';
 
-// Page Imports
+// Auth Context & Guards
+import { AuthProvider } from './context/AuthContext';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { RoleGuard } from './components/auth/RoleGuard';
+
+// Auth & Panel Pages
+import Login from './pages/auth/Login';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import AdminPanel from './pages/panels/AdminPanel';
+import TeacherPanel from './pages/panels/TeacherPanel';
+import PortalPanel from './pages/panels/PortalPanel';
+import StudentPanel from './pages/panels/StudentPanel';
+import { ParentPanel } from './pages/panels/ParentPanel';
+
+// Public Website Page Imports
 import Home from './pages/Home';
 import AboutUs from './pages/AboutUs';
 import Academics from './pages/Academics';
@@ -14,34 +28,161 @@ import Gallery from './pages/Gallery';
 import NewsEvents from './pages/NewsEvents';
 import Contact from './pages/Contact';
 import Legal from './pages/Legal';
+import Blog from './pages/Blog';
+import { updatePageSEO } from './components/common/SEOHead';
 
 // Lucide Icons
 import { Home as HomeIcon, Phone, GraduationCap, MapPin, MessageSquare, AlertCircle } from 'lucide-react';
 import { SCHOOL_DETAILS } from './data/content';
 
-export default function App() {
+function MainApp() {
   const [activePage, setActivePage] = useState<ActivePage>('home');
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 
-  // Scroll to top on page change
+  // Sync state with browser path location on init & popstate
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const handleLocationSync = () => {
+      const path = window.location.pathname.toLowerCase().replace(/\/$/, '');
+      if (path === '/login' || path === '/portal/login') setActivePage('login');
+      else if (path === '/forgot-password') setActivePage('forgot-password');
+      else if (path === '/admin' || path.startsWith('/admin/')) setActivePage('admin');
+      else if (path === '/teacher' || path.startsWith('/teacher/')) setActivePage('teacher');
+      else if (path === '/portal' || path.startsWith('/portal/')) setActivePage('portal');
+      else if (path === '/student' || path.startsWith('/student/')) setActivePage('portal');
+      else if (path === '/parent' || path.startsWith('/parent/')) setActivePage('portal');
+    };
+
+    handleLocationSync();
+    window.addEventListener('popstate', handleLocationSync);
+    return () => window.removeEventListener('popstate', handleLocationSync);
+  }, []);
+
+  // Update SEO Title, Meta tags, Robots, OpenGraph, Canonical, and Schema.org on page change
+  useEffect(() => {
+    const pageToPathMap: Record<ActivePage, string> = {
+      home: '/',
+      about: '/about',
+      academics: '/academics',
+      admissions: '/admissions',
+      facilities: '/facilities',
+      gallery: '/gallery',
+      news: '/notices',
+      contact: '/contact',
+      legal: '/legal',
+      blog: '/blog',
+      login: '/portal/login',
+      'forgot-password': '/forgot-password',
+      admin: '/admin',
+      teacher: '/teacher',
+      portal: '/portal',
+      student: '/portal',
+      parent: '/portal'
+    };
+    const path = pageToPathMap[activePage] || '/';
+    updatePageSEO(path);
   }, [activePage]);
+
+  // Update browser URL on page change if appropriate
+  const handlePageChange = (page: ActivePage) => {
+    setActivePage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    const routeMap: Partial<Record<ActivePage, string>> = {
+      login: '/portal/login',
+      'forgot-password': '/forgot-password',
+      admin: '/admin',
+      teacher: '/teacher/dashboard',
+      portal: '/portal/dashboard',
+      student: '/portal/dashboard',
+      parent: '/portal/dashboard',
+      home: '/',
+    };
+
+    const targetUrl = routeMap[page];
+    if (targetUrl && window.location.pathname !== targetUrl) {
+      window.history.pushState({}, '', targetUrl);
+    }
+  };
 
   // Auto-open admission enquiry modal popup after 2 seconds on initial website visit
   useEffect(() => {
     const popupTimer = setTimeout(() => {
-      setIsApplyModalOpen(true);
+      if (
+        activePage !== 'login' &&
+        activePage !== 'forgot-password' &&
+        activePage !== 'admin' &&
+        activePage !== 'teacher' &&
+        activePage !== 'student' &&
+        activePage !== 'parent' &&
+        activePage !== 'portal'
+      ) {
+        setIsApplyModalOpen(true);
+      }
     }, 2000);
 
     return () => clearTimeout(popupTimer);
   }, []);
 
-  // Page switcher
+  // Full screen standalone views for Login & Protected Role Panels
+  if (activePage === 'login') {
+    return (
+      <Login
+        onNavigateToForgotPassword={() => handlePageChange('forgot-password')}
+        onNavigateHome={() => handlePageChange('home')}
+        onLoginSuccess={(role) => {
+          if (role === 'SUPER_ADMIN' || role === 'ADMIN') handlePageChange('admin');
+          else if (role === 'TEACHER') handlePageChange('teacher');
+          else if (role === 'PORTAL_USER' || role === 'STUDENT' || role === 'PARENT') handlePageChange('portal');
+          else handlePageChange('home');
+        }}
+      />
+    );
+  }
+
+  if (activePage === 'forgot-password') {
+    return (
+      <ForgotPassword
+        onNavigateToLogin={() => handlePageChange('login')}
+        onNavigateHome={() => handlePageChange('home')}
+      />
+    );
+  }
+
+  if (activePage === 'admin') {
+    return (
+      <ProtectedRoute onNavigateToLogin={() => handlePageChange('login')}>
+        <RoleGuard allowedRoles={['ADMIN', 'SUPER_ADMIN']} onNavigateToPanel={(r) => handlePageChange(r.toLowerCase() as ActivePage)}>
+          <AdminPanel onNavigateHome={() => handlePageChange('home')} />
+        </RoleGuard>
+      </ProtectedRoute>
+    );
+  }
+
+  if (activePage === 'teacher') {
+    return (
+      <ProtectedRoute onNavigateToLogin={() => handlePageChange('login')}>
+        <RoleGuard allowedRoles={['TEACHER']} onNavigateToPanel={(r) => handlePageChange(r.toLowerCase() as ActivePage)}>
+          <TeacherPanel onNavigateHome={() => handlePageChange('home')} />
+        </RoleGuard>
+      </ProtectedRoute>
+    );
+  }
+
+  if (activePage === 'portal' || activePage === 'student' || activePage === 'parent') {
+    return (
+      <ProtectedRoute onNavigateToLogin={() => handlePageChange('login')}>
+        <RoleGuard allowedRoles={['PORTAL_USER', 'STUDENT', 'PARENT', 'ADMIN', 'SUPER_ADMIN']} onNavigateToPanel={(r) => handlePageChange(r.toLowerCase() as ActivePage)}>
+          <PortalPanel onNavigateHome={() => handlePageChange('home')} />
+        </RoleGuard>
+      </ProtectedRoute>
+    );
+  }
+
+  // Public Website View
   const renderPage = () => {
     switch (activePage) {
       case 'home':
-        return <Home setActivePage={setActivePage} onOpenApplyModal={() => setIsApplyModalOpen(true)} />;
+        return <Home setActivePage={handlePageChange} onOpenApplyModal={() => setIsApplyModalOpen(true)} />;
       case 'about':
         return <AboutUs />;
       case 'academics':
@@ -58,8 +199,9 @@ export default function App() {
         return <Contact />;
       case 'legal':
         return <Legal />;
+      case 'blog':
+        return <Blog setActivePage={handlePageChange} onOpenApplyModal={() => setIsApplyModalOpen(true)} />;
       default:
-        // 404 Fallback view
         return (
           <div className="max-w-md mx-auto text-center py-20 px-4 space-y-6 animate-fadeIn font-sans">
             <AlertCircle className="w-16 h-16 text-red-500 mx-auto" />
@@ -68,7 +210,7 @@ export default function App() {
               We couldn't locate the regulatory department or visual module you are trying to open.
             </p>
             <button
-              onClick={() => setActivePage('home')}
+              onClick={() => handlePageChange('home')}
               className="bg-[#001c46] hover:bg-[#1a325d] text-[#FFC907] px-6 py-3 rounded-xl text-xs uppercase tracking-wider font-bold transition-all inline-block"
             >
               Back To Home Portal
@@ -81,7 +223,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 flex flex-col font-sans select-none selection:bg-[#FFC907]/30 selection:text-[#001c46]">
       {/* Navigation bar */}
-      <Navbar activePage={activePage} setActivePage={setActivePage} onOpenApplyModal={() => setIsApplyModalOpen(true)} />
+      <Navbar activePage={activePage} setActivePage={handlePageChange} onOpenApplyModal={() => setIsApplyModalOpen(true)} />
 
       {/* Main Content Wrapper */}
       <main className="flex-grow pt-0">
@@ -91,12 +233,12 @@ export default function App() {
       </main>
 
       {/* Global Footer */}
-      <Footer setActivePage={setActivePage} />
+      <Footer setActivePage={handlePageChange} />
 
       {/* Sticky Bottom Navigation Bar (Mobile Only) */}
       <nav className="fixed bottom-0 left-0 w-full z-45 flex justify-around items-center px-2 py-3 bg-white border-t border-gray-100 md:hidden shadow-[0_-4px_16px_rgba(0,0,0,0.06)] rounded-t-2xl">
         <button
-          onClick={() => setActivePage('home')}
+          onClick={() => handlePageChange('home')}
           className={`flex flex-col items-center justify-center transition-all ${
             activePage === 'home' ? 'text-[#001c46] scale-105' : 'text-gray-400 hover:text-gray-700'
           }`}
@@ -113,16 +255,15 @@ export default function App() {
           <span className="text-[10px] font-bold mt-1 uppercase tracking-wider">Call</span>
         </a>
 
-        {/* Central visual hub badge */}
         <button
-          onClick={() => setActivePage('academics')}
+          onClick={() => handlePageChange('academics')}
           className="flex flex-col items-center justify-center bg-[#001c46] text-[#FFC907] w-14 h-14 rounded-full -mt-7 border-4 border-white shadow-lg active:scale-95 transition-all"
         >
           <GraduationCap className="w-6 h-6" />
         </button>
 
         <button
-          onClick={() => setActivePage('admissions')}
+          onClick={() => handlePageChange('admissions')}
           className={`flex flex-col items-center justify-center transition-all ${
             activePage === 'admissions' ? 'text-[#001c46] scale-105' : 'text-gray-400 hover:text-gray-700'
           }`}
@@ -132,7 +273,7 @@ export default function App() {
         </button>
 
         <button
-          onClick={() => setActivePage('contact')}
+          onClick={() => handlePageChange('contact')}
           className={`flex flex-col items-center justify-center transition-all ${
             activePage === 'contact' ? 'text-[#001c46] scale-105' : 'text-gray-400 hover:text-gray-700'
           }`}
@@ -142,7 +283,7 @@ export default function App() {
         </button>
       </nav>
 
-      {/* Adjust padding at bottom on mobile to offset bottom nav */}
+      {/* Mobile offset */}
       <div className="h-16 md:hidden"></div>
 
       {/* WhatsApp Floating Button */}
@@ -154,7 +295,6 @@ export default function App() {
         title="Chat on WhatsApp"
         id="whatsapp-floating-button"
       >
-        {/* Dynamic tooltip */}
         <span className="absolute right-full mr-3 bg-[#001c46] text-[#FFC907] text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap shadow-lg pointer-events-none hidden md:inline-block">
           Chat on WhatsApp
         </span>
@@ -169,5 +309,13 @@ export default function App() {
       {/* Global Apply/Enquiry Modal */}
       <ApplyModal isOpen={isApplyModalOpen} onClose={() => setIsApplyModalOpen(false)} />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <MainApp />
+    </AuthProvider>
   );
 }

@@ -1,5 +1,45 @@
 {
   "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User profile with role-based access control and account status.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth unique user ID."
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User full display name."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["SUPER_ADMIN", "ADMIN", "TEACHER", "STUDENT", "PARENT"],
+          "description": "System role controlling authorization level."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["ACTIVE", "DISABLED"],
+          "description": "Account status flag."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Account creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Account last update timestamp."
+        }
+      },
+      "required": ["uid", "email", "displayName", "role", "status", "createdAt", "updatedAt"]
+    },
     "Enquiry": {
       "title": "Enquiry",
       "description": "Admission enquiry from prospective students and parents.",
@@ -86,12 +126,680 @@
         "source",
         "createdAt"
       ]
+    },
+    "Student": {
+      "title": "Student",
+      "description": "Official student profile record in GP Academy database.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Unique student document key."
+        },
+        "studentId": {
+          "type": "string",
+          "description": "Auto-generated institutional student ID (e.g. GP20260001)."
+        },
+        "name": {
+          "type": "string",
+          "description": "Full official student name."
+        },
+        "email": {
+          "type": "string",
+          "description": "Optional student email address."
+        },
+        "className": {
+          "type": "string",
+          "description": "Enrolled academic class/grade."
+        },
+        "section": {
+          "type": "string",
+          "description": "Class section identifier (e.g. A, B, C)."
+        },
+        "rollNumber": {
+          "type": "string",
+          "description": "Roll number assigned in class."
+        },
+        "board": {
+          "type": "string",
+          "enum": ["CBSE", "UP Board"],
+          "description": "Academic affiliation board."
+        },
+        "parentName": {
+          "type": "string",
+          "description": "Parent or guardian full name."
+        },
+        "phone": {
+          "type": "string",
+          "description": "Primary 10-digit mobile contact number."
+        },
+        "alternatePhone": {
+          "type": "string",
+          "description": "Secondary contact phone number."
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "description": "Date of birth (YYYY-MM-DD)."
+        },
+        "address": {
+          "type": "string",
+          "description": "Residential address."
+        },
+        "previousSchool": {
+          "type": "string",
+          "description": "Name of previous educational institute."
+        },
+        "admissionDate": {
+          "type": "string",
+          "description": "Date of enrollment at GP Academy."
+        },
+        "profilePhoto": {
+          "type": "string",
+          "description": "URL or avatar image string."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["ACTIVE", "DISABLED"],
+          "description": "Student enrollment status."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last modified timestamp."
+        }
+      },
+      "required": [
+        "uid",
+        "studentId",
+        "name",
+        "className",
+        "section",
+        "board",
+        "parentName",
+        "phone",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Teacher": {
+      "title": "Teacher",
+      "description": "Official teacher record in GP Academy database.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Unique teacher document key."
+        },
+        "teacherId": {
+          "type": "string",
+          "description": "Institutional teacher ID (e.g. GP-T-2026-001)."
+        },
+        "name": {
+          "type": "string",
+          "description": "Full official teacher name."
+        },
+        "email": {
+          "type": "string",
+          "description": "Official teacher email address."
+        },
+        "phone": {
+          "type": "string",
+          "description": "Primary 10-digit mobile contact number."
+        },
+        "alternatePhone": {
+          "type": "string",
+          "description": "Secondary contact phone number."
+        },
+        "subjects": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of subjects taught by teacher."
+        },
+        "assignedClasses": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of assigned classes."
+        },
+        "qualification": {
+          "type": "string",
+          "description": "Educational qualification or degrees."
+        },
+        "address": {
+          "type": "string",
+          "description": "Residential address."
+        },
+        "joiningDate": {
+          "type": "string",
+          "description": "Date teacher joined the institute (YYYY-MM-DD)."
+        },
+        "profilePhoto": {
+          "type": "string",
+          "description": "URL or photo string."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["ACTIVE", "DISABLED"],
+          "description": "Teacher account status."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last modified timestamp."
+        }
+      },
+      "required": [
+        "uid",
+        "teacherId",
+        "name",
+        "email",
+        "phone",
+        "subjects",
+        "assignedClasses",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Attendance": {
+      "title": "Attendance Record",
+      "description": "Daily student attendance log record.",
+      "type": "object",
+      "properties": {
+        "studentId": {
+          "type": "string",
+          "description": "Unique student identifier."
+        },
+        "studentUid": {
+          "type": "string",
+          "description": "Student document key."
+        },
+        "studentName": {
+          "type": "string",
+          "description": "Student full name at time of marking."
+        },
+        "rollNumber": {
+          "type": "string",
+          "description": "Student roll number at time of marking."
+        },
+        "date": {
+          "type": "string",
+          "description": "Attendance date in YYYY-MM-DD format."
+        },
+        "className": {
+          "type": "string",
+          "description": "Class or grade level."
+        },
+        "class": {
+          "type": "string",
+          "description": "Class or grade level alias."
+        },
+        "section": {
+          "type": "string",
+          "description": "Section identifier."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["PRESENT", "ABSENT", "LEAVE", "LATE", "HALF_DAY"],
+          "description": "Attendance status: PRESENT, ABSENT, LEAVE."
+        },
+        "markedBy": {
+          "type": "string",
+          "description": "Email or UID of user marking attendance."
+        },
+        "markedByRole": {
+          "type": "string",
+          "enum": ["ADMIN", "TEACHER", "SUPER_ADMIN"],
+          "description": "Role of user who recorded the attendance."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Record creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Record last update timestamp."
+        }
+      },
+      "required": ["studentId", "date", "className", "section", "status", "markedBy"]
+    },
+    "FeeStructure": {
+      "title": "Fee Structure",
+      "description": "Fee amounts and frequency rules per class and board.",
+      "type": "object",
+      "properties": {
+        "academicSession": { "type": "string" },
+        "className": { "type": "string" },
+        "board": { "type": "string" },
+        "feeType": { "type": "string" },
+        "amount": { "type": "number" },
+        "frequency": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["academicSession", "className", "feeType", "amount", "frequency", "status"]
+    },
+    "Payment": {
+      "title": "Payment Record",
+      "description": "Manual or verified fee payment records.",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "studentUid": { "type": "string" },
+        "receiptNumber": { "type": "string" },
+        "feeType": { "type": "string" },
+        "amount": { "type": "number" },
+        "paymentDate": { "type": "string" },
+        "paymentMode": { "type": "string" },
+        "referenceNumber": { "type": "string" },
+        "remarks": { "type": "string" },
+        "recordedBy": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["studentId", "studentUid", "receiptNumber", "feeType", "amount", "paymentDate", "paymentMode", "recordedBy"]
+    },
+    "PaymentTransaction": {
+      "title": "Payment Gateway Transaction",
+      "description": "Prepared collection for future online payment gateway transactions.",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "amount": { "type": "number" },
+        "gateway": { "type": "string" },
+        "orderId": { "type": "string" },
+        "transactionId": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["studentId", "amount", "gateway", "status"]
+    },
+    "StudentFee": {
+      "title": "Student Fee Record",
+      "description": "Individual student fee assessment, status, and balance.",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "class": { "type": "string" },
+        "section": { "type": "string" },
+        "academicYear": { "type": "string" },
+        "feeMonth": { "type": "string" },
+        "feeType": { "type": "string" },
+        "amount": { "type": "number" },
+        "dueDate": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["PENDING", "PARTIALLY_PAID", "PAID", "OVERDUE", "CANCELLED"]
+        },
+        "paidAmount": { "type": "number" },
+        "pendingAmount": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "paymentId": { "type": "string" },
+        "orderId": { "type": "string" },
+        "receiptId": { "type": "string" },
+        "paidAt": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["studentId", "studentName", "class", "section", "academicYear", "feeMonth", "feeType", "amount", "dueDate", "status", "paidAmount", "pendingAmount"]
+    },
+    "Refund": {
+      "title": "Refund Record",
+      "description": "Payment refund request and processing record.",
+      "type": "object",
+      "properties": {
+        "refundId": { "type": "string" },
+        "paymentId": { "type": "string" },
+        "amount": { "type": "number" },
+        "reason": { "type": "string" },
+        "status": { "type": "string", "enum": ["PENDING", "PROCESSED", "FAILED"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["refundId", "paymentId", "amount", "reason", "status", "createdAt"]
+    },
+    "Timetable": {
+      "title": "Timetable Header",
+      "description": "Class schedule metadata for an academic session, class, section, and board.",
+      "type": "object",
+      "properties": {
+        "academicSession": { "type": "string" },
+        "className": { "type": "string" },
+        "section": { "type": "string" },
+        "board": { "type": "string" },
+        "status": { "type": "string", "enum": ["DRAFT", "PUBLISHED", "ARCHIVED"] },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["academicSession", "className", "section", "board", "status"]
+    },
+    "TimetableEntry": {
+      "title": "Timetable Entry",
+      "description": "Individual period or break entry in a class schedule.",
+      "type": "object",
+      "properties": {
+        "timetableId": { "type": "string" },
+        "day": { "type": "string" },
+        "periodNumber": { "type": "number" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
+        "subject": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "teacherName": { "type": "string" },
+        "room": { "type": "string" },
+        "type": { "type": "string", "enum": ["CLASS", "BREAK", "ASSEMBLY"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["timetableId", "day", "periodNumber", "startTime", "endTime", "subject", "type"]
+    },
+    "Notice": {
+      "title": "Notice & Announcement",
+      "description": "Collection of official school notices, announcements, and communications.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "type": { "type": "string" },
+        "targetAudience": { "type": "string" },
+        "targetClass": { "type": "string" },
+        "targetSection": { "type": "string" },
+        "publishDate": { "type": "string" },
+        "expiryDate": { "type": "string" },
+        "priority": { "type": "string", "enum": ["NORMAL", "IMPORTANT", "URGENT"] },
+        "attachmentUrl": { "type": "string" },
+        "attachmentName": { "type": "string" },
+        "attachmentType": { "type": "string" },
+        "status": { "type": "string", "enum": ["DRAFT", "PUBLISHED", "ARCHIVED"] },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["title", "description", "type", "targetAudience", "publishDate", "priority", "status"]
+    },
+    "AdmissionEnquiry": {
+      "title": "Admission Enquiry",
+      "description": "Online admission enquiry submitted from GP Academy website.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "enquiryId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "parentName": { "type": "string" },
+        "phone": { "type": "string" },
+        "grade": { "type": "string" },
+        "board": { "type": "string", "enum": ["CBSE", "UP Board"] },
+        "studentAge": { "type": "string" },
+        "previousSchool": { "type": "string" },
+        "remarks": { "type": "string" },
+        "status": { "type": "string", "enum": ["NEW", "CONTACTED", "FOLLOW_UP", "ADMISSION_CONFIRMED", "NOT_INTERESTED", "CLOSED"] },
+        "followUpDate": { "type": "string" },
+        "followUpNote": { "type": "string" },
+        "convertedStudentId": { "type": "string" },
+        "submittedAt": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "enquiryId", "studentName", "parentName", "phone", "grade", "board", "status", "submittedAt", "createdAt", "updatedAt"]
+    },
+    "AdmissionEnquiryNote": {
+      "title": "Admission Enquiry Note",
+      "description": "Internal administrative note on an admission enquiry.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "enquiryId": { "type": "string" },
+        "note": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "enquiryId", "note", "createdBy", "createdAt"]
+    },
+    "GalleryAlbum": {
+      "title": "Gallery Album",
+      "description": "School event photo and video album collection.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "eventDate": { "type": "string" },
+        "coverImageUrl": { "type": "string" },
+        "coverImageStoragePath": { "type": "string" },
+        "status": { "type": "string", "enum": ["DRAFT", "PUBLISHED", "ARCHIVED"] },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "name", "status", "createdBy", "createdAt", "updatedAt"]
+    },
+    "GalleryMedia": {
+      "title": "Gallery Media Item",
+      "description": "Photo or video media asset attached to a gallery album.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "albumId": { "type": "string" },
+        "fileName": { "type": "string" },
+        "fileType": { "type": "string" },
+        "mediaType": { "type": "string", "enum": ["IMAGE", "VIDEO"] },
+        "storagePath": { "type": "string" },
+        "downloadUrl": { "type": "string" },
+        "fileSize": { "type": "number" },
+        "caption": { "type": "string" },
+        "status": { "type": "string", "enum": ["DRAFT", "PUBLISHED", "ARCHIVED"] },
+        "uploadedBy": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "albumId", "fileName", "fileType", "mediaType", "storagePath", "downloadUrl", "fileSize", "status", "uploadedBy", "createdAt", "updatedAt"]
+    },
+    "Parent": {
+      "title": "Parent / Guardian Profile",
+      "description": "Parent or guardian user profile linked to one or more students.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "linkedStudentIds": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "status": { "type": "string", "enum": ["ACTIVE", "DISABLED"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid", "name", "email", "phone", "status", "createdAt", "updatedAt"]
+    },
+    "ParentStudentLink": {
+      "title": "Parent Student Link",
+      "description": "Secure mapping between parent UID and institutional student ID / student UID.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "parentUid": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentUid": { "type": "string" },
+        "studentName": { "type": "string" },
+        "relationship": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "parentUid", "studentId", "studentUid", "createdAt"]
+    },
+    "PortalStudentLink": {
+      "title": "Portal Student Link",
+      "description": "Combined portal user mapping between auth UID and student record.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "portalUserUid": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentUid": { "type": "string" },
+        "studentName": { "type": "string" },
+        "className": { "type": "string" },
+        "section": { "type": "string" },
+        "status": { "type": "string", "enum": ["ACTIVE", "DISABLED"] },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "portalUserUid", "studentId", "status", "createdBy", "createdAt", "updatedAt"]
+    },
+    "ExamResult": {
+      "title": "Exam Result",
+      "description": "Student examination evaluation record.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentUid": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "rollNumber": { "type": "string" },
+        "className": { "type": "string" },
+        "section": { "type": "string" },
+        "board": { "type": "string" },
+        "examName": { "type": "string" },
+        "academicSession": { "type": "string" },
+        "subjects": {
+          "type": "array",
+          "items": { "type": "object" }
+        },
+        "totalMarks": { "type": "number" },
+        "marksObtained": { "type": "number" },
+        "percentage": { "type": "number" },
+        "grade": { "type": "string" },
+        "status": { "type": "string", "enum": ["PASSED", "FAILED", "SUPPLEMENTARY"] },
+        "publishedDate": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["studentUid", "studentId", "examName", "academicSession", "status"]
+    },
+    "SchoolSettings": {
+      "title": "School Settings",
+      "description": "Global institutional configuration, contact information, hours, and branding.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "tagline": { "type": "string" },
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "hoursWeekday": { "type": "string" },
+        "hoursWeekend": { "type": "string" },
+        "aboutSchool": { "type": "string" },
+        "principalMessage": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "faviconUrl": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["name", "address", "phone"]
     }
   },
   "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user documents storing user metadata and roles."
+    },
+    "portalStudentLinks/{linkId}": {
+      "schema": "PortalStudentLink",
+      "description": "Collection of portal user to student relationship mapping documents."
+    },
+    "parents/{parentId}": {
+      "schema": "Parent",
+      "description": "Collection of parent profiles with linked children."
+    },
+    "parentStudentLinks/{linkId}": {
+      "schema": "ParentStudentLink",
+      "description": "Collection of parent to student authorization links."
+    },
     "enquiries/{enquiryId}": {
       "schema": "Enquiry",
       "description": "A collection of admission enquiries received online."
+    },
+    "admissionEnquiries/{enquiryId}": {
+      "schema": "AdmissionEnquiry",
+      "description": "Collection of official public admission enquiries."
+    },
+    "admissionEnquiries/{enquiryId}/notes/{noteId}": {
+      "schema": "AdmissionEnquiryNote",
+      "description": "Subcollection of internal notes on an admission enquiry."
+    },
+    "students/{studentId}": {
+      "schema": "Student",
+      "description": "Collection of student academic records."
+    },
+    "teachers/{teacherId}": {
+      "schema": "Teacher",
+      "description": "Collection of teacher academic records."
+    },
+    "attendance/{attendanceId}": {
+      "schema": "Attendance",
+      "description": "Collection of daily student attendance logs."
+    },
+    "feeStructures/{feeStructureId}": {
+      "schema": "FeeStructure",
+      "description": "Collection of institutional fee structures."
+    },
+    "payments/{paymentId}": {
+      "schema": "Payment",
+      "description": "Collection of manual and verified student fee payments."
+    },
+    "paymentTransactions/{transactionId}": {
+      "schema": "PaymentTransaction",
+      "description": "Collection of online payment gateway transactions for future integration."
+    },
+    "studentFees/{feeId}": {
+      "schema": "StudentFee",
+      "description": "Collection of individual student fee records and statuses."
+    },
+    "refunds/{refundId}": {
+      "schema": "Refund",
+      "description": "Collection of fee refunds."
+    },
+    "timetables/{timetableId}": {
+      "schema": "Timetable",
+      "description": "Collection of class schedule headers."
+    },
+    "timetableEntries/{entryId}": {
+      "schema": "TimetableEntry",
+      "description": "Collection of period and break entries for class schedules."
+    },
+    "notices/{noticeId}": {
+      "schema": "Notice",
+      "description": "Collection of official school notices and announcements."
+    },
+    "galleryAlbums/{albumId}": {
+      "schema": "GalleryAlbum",
+      "description": "Collection of photo and video albums."
+    },
+    "galleryMedia/{mediaId}": {
+      "schema": "GalleryMedia",
+      "description": "Collection of media assets attached to albums."
+    },
+    "examResults/{resultId}": {
+      "schema": "ExamResult",
+      "description": "Collection of student exam results and report cards."
+    },
+    "schoolSettings/{settingId}": {
+      "schema": "SchoolSettings",
+      "description": "Collection of global school settings and contact information."
     }
   }
 }

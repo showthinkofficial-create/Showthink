@@ -1,13 +1,20 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import { initializeFirestore, getFirestore, doc, getDoc } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firestore with specific databaseId as specified in config
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+// Initialize Firestore with robust long-polling auto-detection for web/iframe environments
+export const db = initializeFirestore(
+  app,
+  {
+    experimentalAutoDetectLongPolling: true,
+  },
+  firebaseConfig.firestoreDatabaseId
+);
+
 export const auth = getAuth(app);
 
 export enum OperationType {
@@ -57,15 +64,36 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   throw new Error(JSON.stringify(errInfo));
 }
 
-async function testConnection() {
-  try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
-  } catch (error) {
-    if (error instanceof Error && (error.message.includes('the client is offline') || error.message.includes('unavailable') || error.message.includes('Could not reach Cloud Firestore'))) {
-      console.warn("Please check your Firebase configuration: Client is operating in offline mode or Firestore connection is unavailable.");
+/**
+ * Utility helper to deeply remove undefined values from Firestore document payloads
+ */
+export function sanitizeFirestorePayload<T extends Record<string, any>>(data: T): Record<string, any> {
+  if (!data || typeof data !== 'object') return data;
+  if (Array.isArray(data)) {
+    return data
+      .filter((item) => item !== undefined)
+      .map((item) => (item !== null && typeof item === 'object' ? sanitizeFirestorePayload(item) : item));
+  }
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined) {
+      if (value !== null && typeof value === 'object' && !(value instanceof Date)) {
+        result[key] = sanitizeFirestorePayload(value);
+      } else {
+        result[key] = value;
+      }
     }
   }
+  return result;
 }
 
-testConnection();
+// Background soft connection verification that doesn't trigger unhandled unavailable errors
+setTimeout(async () => {
+  try {
+    await getDoc(doc(db, 'test', 'connection'));
+  } catch (error) {
+    // Gracefully handled for offline/intermittent network
+  }
+}, 1000);
+
 

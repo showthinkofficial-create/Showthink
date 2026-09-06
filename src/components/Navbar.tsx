@@ -126,6 +126,12 @@ export default function Navbar({ activePage, setActivePage, onOpenApplyModal }: 
           {/* Call-to-action button */}
           <div className="flex items-center gap-3">
             <button
+              onClick={() => setActivePage('login')}
+              className="hidden md:inline-flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-[#001c46] px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border border-black"
+            >
+              <span>Portal Login</span>
+            </button>
+            <button
               onClick={onOpenApplyModal}
               className="hidden sm:inline-flex bg-[#132d56] hover:bg-[#0c203f] text-white px-6 py-3 rounded-xl border-2 border-[#FFC907] text-sm font-bold tracking-wide transition-all shadow-md active:scale-95 hover:shadow-lg cursor-pointer"
             >
@@ -209,10 +215,19 @@ export default function Navbar({ activePage, setActivePage, onOpenApplyModal }: 
             </div>
             <button
               onClick={() => {
+                setActivePage('login');
+                setIsOpen(false);
+              }}
+              className="w-full bg-[#001c46] hover:bg-[#1A325D] text-[#FFC907] p-3.5 rounded-xl text-center text-xs font-extrabold uppercase tracking-wider transition-all"
+            >
+              Institutional Portal Login
+            </button>
+            <button
+              onClick={() => {
                 onOpenApplyModal();
                 setIsOpen(false);
               }}
-              className="w-full bg-[#001c46] hover:bg-[#1A325D] text-[#FFC907] p-4 rounded-xl text-center text-sm font-bold tracking-wider transition-all"
+              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 p-3.5 rounded-xl text-center text-xs font-bold tracking-wider transition-all"
             >
               Admission Enquiry
             </button>

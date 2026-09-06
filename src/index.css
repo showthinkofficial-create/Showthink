@@ -31,3 +31,41 @@ a, button, [role="button"], select, input, textarea, .cursor-pointer, [onclick] 
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Print Styles for Reports, Timetables, Marksheets & Receipts */
+@media print {
+  @page {
+    margin: 10mm;
+    size: auto;
+  }
+  aside, nav, header, #whatsapp-floating-button, .print\:hidden, [data-print-hide="true"] {
+    display: none !important;
+  }
+  .hidden.print\:block {
+    display: block !important;
+  }
+  .hidden.lg\:block, .hidden.sm\:block, .hidden.md\:block {
+    display: block !important;
+  }
+  body, main {
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto;
+  }
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  th, td {
+    padding: 6px 8px !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+

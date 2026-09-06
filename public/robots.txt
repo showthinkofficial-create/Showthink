@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Allow: /about
+Allow: /academics
+Allow: /admissions
+Allow: /facilities
+Allow: /gallery
+Allow: /notices
+Allow: /contact
+
+# Disallow private and administrative portals
+Disallow: /admin/
+Disallow: /teacher/
+Disallow: /portal/
+
+# Sitemap location
+Sitemap: https://gpacademy.edu.in/sitemap.xml

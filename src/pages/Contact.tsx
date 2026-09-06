@@ -97,6 +97,24 @@ export default function Contact() {
                 </p>
               </div>
             </div>
+
+            {/* Quick Action Buttons */}
+            <div className="grid grid-cols-2 gap-4 pt-2">
+              <a
+                href={`tel:${SCHOOL_DETAILS.phone}`}
+                className="py-3 px-4 bg-[#001c46] hover:bg-[#1A325D] text-[#FFC907] font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 text-center"
+              >
+                <Phone className="w-4 h-4" /> Call Now
+              </a>
+              <a
+                href="https://maps.google.com/?q=Bhangel+Goyal+Colony+Salarpur+Khadar+Noida+Uttar+Pradesh+201304"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-3 px-4 bg-[#FFC907] hover:bg-[#e5b300] text-[#001c46] font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 text-center"
+              >
+                <MapPin className="w-4 h-4" /> Get Directions
+              </a>
+            </div>
           </div>
         </div>
 

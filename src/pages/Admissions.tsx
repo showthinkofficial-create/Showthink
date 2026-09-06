@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { SCHOOL_DETAILS } from '../data/content';
-import { AdmissionEnquiry } from '../types';
-import { CheckCircle, AlertCircle, FileText, Send, HelpCircle, ClipboardCheck, Sparkles, Gift } from 'lucide-react';
+import { CheckCircle, AlertCircle, Send, HelpCircle, ClipboardCheck, Gift, Loader2 } from 'lucide-react';
+import { admissionService } from '../services/admissionService';
 
 export default function Admissions() {
   // Form State
@@ -17,8 +17,9 @@ export default function Admissions() {
   // UI feedback state
   const [submittedId, setSubmittedId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSubmittedId(null);
@@ -35,45 +36,36 @@ export default function Admissions() {
       return;
     }
 
-    // Create custom enquiry object
-    const newId = 'GPA-' + Math.floor(100000 + Math.random() * 900000);
-    const newEnquiry: AdmissionEnquiry = {
-      id: newId,
-      studentName: studentName.trim(),
-      parentName: parentName.trim(),
-      phone: phone.trim(),
-      previousSchool: previousSchool.trim() || 'Not Applicable',
-      grade,
-      board,
-      interestType: 'Admission',
-      studentAge: studentAge.trim(),
-      remarks: remarks.trim(),
-      status: 'Received',
-      createdAt: new Date().toISOString()
-    };
+    setIsSubmitting(true);
 
-    // Save to localStorage list
-    const existingRaw = localStorage.getItem('gp_academy_enquiries');
-    let enquiries: AdmissionEnquiry[] = [];
-    if (existingRaw) {
-      try {
-        enquiries = JSON.parse(existingRaw);
-      } catch (err) {
-        console.error('Error parsing inquiries', err);
-      }
+    try {
+      const generatedEnquiryId = await admissionService.submitPublicEnquiry({
+        studentName: studentName.trim(),
+        parentName: parentName.trim(),
+        phone: phone.trim(),
+        previousSchool: previousSchool.trim() || undefined,
+        grade,
+        board,
+        studentAge: studentAge.trim(),
+        remarks: remarks.trim() || undefined,
+      });
+
+      // Reset Form Fields
+      setStudentName('');
+      setParentName('');
+      setPhone('');
+      setPreviousSchool('');
+      setGrade('');
+      setStudentAge('');
+      setRemarks('');
+      setSubmittedId(generatedEnquiryId);
+    } catch (err) {
+      console.error('Error submitting admission enquiry:', err);
+      // Friendly visitor-facing error message without exposing Firestore errors
+      setErrorMsg('Unable to submit your enquiry. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
-    enquiries.unshift(newEnquiry);
-    localStorage.setItem('gp_academy_enquiries', JSON.stringify(enquiries));
-
-    // Reset Form Fields
-    setStudentName('');
-    setParentName('');
-    setPhone('');
-    setPreviousSchool('');
-    setGrade('');
-    setStudentAge('');
-    setRemarks('');
-    setSubmittedId(newId);
   };
 
   return (
@@ -178,10 +170,10 @@ export default function Admissions() {
               <div className="p-5 bg-green-50 border-l-4 border-green-500 text-green-900 rounded-r-xl space-y-2">
                 <div className="flex items-center gap-2 text-sm font-black">
                   <CheckCircle className="w-5 h-5 shrink-0 text-green-600" />
-                  <span>Enquiry Submitted Successfully!</span>
+                  <span>Your admission enquiry has been submitted successfully.</span>
                 </div>
                 <p className="text-xs text-green-800">
-                  Your reference ID is <strong className="font-mono text-xs">{submittedId}</strong>. Our admissions counselor will get in touch with you shortly.
+                  Your Enquiry Reference ID is <strong className="font-mono text-xs">{submittedId}</strong>. Our admissions office will review and get in touch with you.
                 </p>
               </div>
             )}
@@ -348,9 +340,19 @@ export default function Admissions() {
 
                 <button
                   type="submit"
-                  className="w-full py-4 bg-[#001c46] hover:bg-[#1A325D] text-[#FFC907] font-sans font-black uppercase tracking-wider rounded-xl transition-all shadow-md text-xs flex items-center justify-center gap-2"
+                  disabled={isSubmitting}
+                  className="w-full py-4 bg-[#001c46] hover:bg-[#1A325D] text-[#FFC907] font-sans font-black uppercase tracking-wider rounded-xl transition-all shadow-md text-xs flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                 >
-                  <Send className="w-4 h-4" /> Submit Application Enquiry
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-[#FFC907]" />
+                      Submitting Enquiry...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" /> Submit Application Enquiry
+                    </>
+                  )}
                 </button>
               </form>
             </div>

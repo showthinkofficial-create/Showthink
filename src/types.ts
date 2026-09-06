@@ -7,7 +7,15 @@ export type ActivePage =
   | 'gallery'
   | 'news'
   | 'contact'
-  | 'legal';
+  | 'legal'
+  | 'blog'
+  | 'login'
+  | 'forgot-password'
+  | 'admin'
+  | 'teacher'
+  | 'student'
+  | 'parent'
+  | 'portal';
 
 export interface AdmissionEnquiry {
   id: string;

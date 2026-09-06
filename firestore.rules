@@ -2,12 +2,111 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // ================= HELPER FUNCTIONS ================= //
+
     function isValidId(id) {
-      return id is string && id.size() > 0 && id.size() <= 64;
+      return id is string && id.size() > 0 && id.size() <= 128;
     }
 
     function isValidString(val, min, max) {
       return val is string && val.size() >= min && val.size() <= max;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isUserSelf(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function getUserData(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data;
+    }
+
+    function isUserActive(uid) {
+      return exists(/databases/$(database)/documents/users/$(uid)) &&
+             getUserData(uid).status == 'ACTIVE' &&
+             (!('loginEnabled' in getUserData(uid)) || getUserData(uid).loginEnabled == true);
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.email != null && (
+          request.auth.token.email == 'showthinkofficial@gmail.com'
+        )) ||
+        (
+          isUserActive(request.auth.uid) &&
+          getUserData(request.auth.uid).role == 'SUPER_ADMIN'
+        )
+      );
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.email != null && (
+          request.auth.token.email == 'showthinkofficial@gmail.com' ||
+          request.auth.token.email.matches('.*admin.*')
+        )) ||
+        (
+          isUserActive(request.auth.uid) &&
+          (getUserData(request.auth.uid).role in ['SUPER_ADMIN', 'ADMIN'])
+        )
+      );
+    }
+
+    function isTeacher() {
+      return isSignedIn() &&
+             isUserActive(request.auth.uid) &&
+             getUserData(request.auth.uid).role == 'TEACHER';
+    }
+
+    function isPortalUser() {
+      return isSignedIn() &&
+             isUserActive(request.auth.uid) &&
+             (getUserData(request.auth.uid).role in ['PORTAL_USER', 'STUDENT', 'PARENT']);
+    }
+
+    // ================= SCHEMA VALIDATORS ================= //
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'role', 'status', 'createdAt', 'updatedAt']) &&
+             isValidString(data.uid, 1, 128) &&
+             isValidString(data.email, 1, 128) &&
+             isValidString(data.displayName, 0, 128) &&
+             data.role in ['SUPER_ADMIN', 'ADMIN', 'TEACHER', 'PORTAL_USER', 'STUDENT', 'PARENT'] &&
+             data.status in ['ACTIVE', 'DISABLED'] &&
+             isValidString(data.createdAt, 1, 40) &&
+             isValidString(data.updatedAt, 1, 40) &&
+             (!('loginEnabled' in data) || data.loginEnabled is bool) &&
+             (!('linkedStudents' in data) || data.linkedStudents is list) &&
+             (!('linkedStudentIds' in data) || data.linkedStudentIds is list);
+    }
+
+    function isValidPortalStudentLink(data) {
+      return data.keys().hasAll(['id', 'portalUserUid', 'studentId', 'status', 'createdBy', 'createdAt', 'updatedAt']) &&
+             isValidString(data.id, 1, 128) &&
+             isValidString(data.portalUserUid, 1, 128) &&
+             isValidString(data.studentId, 1, 100) &&
+             data.status in ['ACTIVE', 'DISABLED'] &&
+             isValidString(data.createdBy, 1, 128) &&
+             isValidString(data.createdAt, 1, 40) &&
+             isValidString(data.updatedAt, 1, 40) &&
+             (!('studentUid' in data) || isValidString(data.studentUid, 0, 128)) &&
+             (!('studentName' in data) || isValidString(data.studentName, 0, 100)) &&
+             (!('className' in data) || isValidString(data.className, 0, 50)) &&
+             (!('section' in data) || isValidString(data.section, 0, 20));
+    }
+
+    function isValidParentStudentLink(data) {
+      return data.keys().hasAll(['id', 'parentUid', 'studentId', 'studentUid', 'createdAt']) &&
+             isValidString(data.id, 1, 128) &&
+             isValidString(data.parentUid, 1, 128) &&
+             isValidString(data.studentId, 1, 100) &&
+             isValidString(data.studentUid, 1, 128) &&
+             isValidString(data.createdAt, 1, 40) &&
+             (!('studentName' in data) || isValidString(data.studentName, 0, 100)) &&
+             (!('relationship' in data) || isValidString(data.relationship, 0, 50));
     }
 
     function isValidEnquiry(data) {
@@ -36,11 +135,524 @@ service cloud.firestore {
       (!('message' in data) || isValidString(data.message, 0, 1000));
     }
 
-    match /enquiries/{enquiryId} {
-      allow create: if isValidId(enquiryId) && isValidEnquiry(request.resource.data);
-      allow get, list, update, delete: if false; // Strict protection of parent PII
+    function isValidAdmissionEnquiry(data) {
+      return data.keys().hasAll([
+        'id', 'enquiryId', 'studentName', 'parentName', 'phone', 
+        'grade', 'board', 'status', 'submittedAt', 'createdAt', 'updatedAt'
+      ]) &&
+      isValidString(data.id, 1, 128) &&
+      isValidString(data.enquiryId, 1, 50) &&
+      isValidString(data.studentName, 1, 100) &&
+      isValidString(data.parentName, 1, 100) &&
+      isValidString(data.phone, 10, 15) &&
+      isValidString(data.grade, 1, 50) &&
+      isValidString(data.board, 1, 50) &&
+      isValidString(data.status, 1, 30) &&
+      isValidString(data.submittedAt, 1, 40) &&
+      isValidString(data.createdAt, 1, 40) &&
+      isValidString(data.updatedAt, 1, 40);
     }
 
+    function isValidAdmissionEnquiryNote(data) {
+      return data.keys().hasAll(['id', 'enquiryId', 'note', 'createdBy', 'createdAt']) &&
+             isValidString(data.id, 1, 128) &&
+             isValidString(data.enquiryId, 1, 128) &&
+             isValidString(data.note, 1, 2000) &&
+             isValidString(data.createdBy, 1, 128) &&
+             isValidString(data.createdAt, 1, 40);
+    }
+
+    function isValidStudent(data) {
+      return data.keys().hasAll([
+        'uid', 'studentId', 'name', 'className', 'section', 
+        'board', 'parentName', 'phone', 'status', 'createdAt', 'updatedAt'
+      ]) &&
+      isValidString(data.uid, 1, 128) &&
+      isValidString(data.studentId, 1, 50) &&
+      isValidString(data.name, 1, 100) &&
+      isValidString(data.className, 1, 50) &&
+      isValidString(data.section, 1, 20) &&
+      data.board in ['CBSE', 'UP Board'] &&
+      isValidString(data.parentName, 1, 100) &&
+      isValidString(data.phone, 1, 30) &&
+      data.status in ['ACTIVE', 'DISABLED'] &&
+      isValidString(data.createdAt, 1, 40) &&
+      isValidString(data.updatedAt, 1, 40) &&
+      (!('authUid' in data) || data.authUid == null || isValidString(data.authUid, 0, 128)) &&
+      (!('parentUid' in data) || data.parentUid == null || isValidString(data.parentUid, 0, 128)) &&
+      (!('email' in data) || data.email == null || isValidString(data.email, 0, 128)) &&
+      (!('rollNumber' in data) || data.rollNumber == null || isValidString(data.rollNumber, 0, 50)) &&
+      (!('alternatePhone' in data) || data.alternatePhone == null || isValidString(data.alternatePhone, 0, 30)) &&
+      (!('dateOfBirth' in data) || data.dateOfBirth == null || isValidString(data.dateOfBirth, 0, 30)) &&
+      (!('address' in data) || data.address == null || isValidString(data.address, 0, 500)) &&
+      (!('previousSchool' in data) || data.previousSchool == null || isValidString(data.previousSchool, 0, 150)) &&
+      (!('admissionDate' in data) || data.admissionDate == null || isValidString(data.admissionDate, 0, 30)) &&
+      (!('profilePhoto' in data) || data.profilePhoto == null || isValidString(data.profilePhoto, 0, 2000));
+    }
+
+    function isValidTeacher(data) {
+      return data.keys().hasAll([
+        'uid', 'teacherId', 'name', 'email', 'phone', 
+        'subjects', 'assignedClasses', 'status', 'createdAt', 'updatedAt'
+      ]) &&
+      isValidString(data.uid, 1, 128) &&
+      isValidString(data.teacherId, 1, 50) &&
+      isValidString(data.name, 1, 100) &&
+      isValidString(data.email, 1, 128) &&
+      isValidString(data.phone, 1, 30) &&
+      data.subjects is list && data.subjects.size() > 0 &&
+      data.assignedClasses is list && data.assignedClasses.size() > 0 &&
+      data.status in ['ACTIVE', 'DISABLED'] &&
+      isValidString(data.createdAt, 1, 40) &&
+      isValidString(data.updatedAt, 1, 40) &&
+      (!('alternatePhone' in data) || data.alternatePhone == null || isValidString(data.alternatePhone, 0, 30)) &&
+      (!('qualification' in data) || data.qualification == null || isValidString(data.qualification, 0, 200)) &&
+      (!('address' in data) || data.address == null || isValidString(data.address, 0, 500)) &&
+      (!('joiningDate' in data) || data.joiningDate == null || isValidString(data.joiningDate, 0, 30)) &&
+      (!('profilePhoto' in data) || data.profilePhoto == null || isValidString(data.profilePhoto, 0, 2000));
+    }
+
+    function isValidAttendance(data) {
+      return data.keys().hasAll([
+        'studentId', 'date', 'className', 'section', 'status', 'markedBy'
+      ]) &&
+      isValidString(data.studentId, 1, 100) &&
+      isValidString(data.date, 10, 10) &&
+      isValidString(data.className, 1, 50) &&
+      isValidString(data.section, 1, 20) &&
+      data.status in ['PRESENT', 'ABSENT', 'LEAVE', 'LATE', 'HALF_DAY'] &&
+      isValidString(data.markedBy, 1, 128) &&
+      (!('class' in data) || data.class == null || isValidString(data.class, 0, 50)) &&
+      (!('markedByRole' in data) || data.markedByRole == null || data.markedByRole in ['ADMIN', 'TEACHER', 'SUPER_ADMIN']) &&
+      (!('remarks' in data) || data.remarks == null || isValidString(data.remarks, 0, 500)) &&
+      (!('studentUid' in data) || data.studentUid == null || isValidString(data.studentUid, 0, 128)) &&
+      (!('studentName' in data) || data.studentName == null || isValidString(data.studentName, 0, 100)) &&
+      (!('rollNumber' in data) || data.rollNumber == null || isValidString(data.rollNumber, 0, 50)) &&
+      (!('absenceReason' in data) || data.absenceReason == null || isValidString(data.absenceReason, 0, 150)) &&
+      (!('absenceNote' in data) || data.absenceNote == null || isValidString(data.absenceNote, 0, 500)) &&
+      (!('inTime' in data) || data.inTime == null || isValidString(data.inTime, 0, 30)) &&
+      (!('outTime' in data) || data.outTime == null || isValidString(data.outTime, 0, 30)) &&
+      (!('parentNotified' in data) || data.parentNotified == null || data.parentNotified is bool) &&
+      (!('createdAt' in data) || data.createdAt is string || data.createdAt is timestamp) &&
+      (!('updatedAt' in data) || data.updatedAt is string || data.updatedAt is timestamp);
+    }
+
+    function isValidFeeStructure(data) {
+      return data.keys().hasAll([
+        'academicSession', 'className', 'feeType', 'amount', 'frequency', 'status'
+      ]) &&
+      isValidString(data.academicSession, 1, 20) &&
+      isValidString(data.className, 1, 50) &&
+      isValidString(data.feeType, 1, 50) &&
+      data.amount is number && data.amount > 0 &&
+      isValidString(data.frequency, 1, 30) &&
+      data.status in ['ACTIVE', 'INACTIVE'] &&
+      (!('board' in data) || isValidString(data.board, 0, 50)) &&
+      (!('createdAt' in data) || data.createdAt is string || data.createdAt is timestamp) &&
+      (!('updatedAt' in data) || data.updatedAt is string || data.updatedAt is timestamp);
+    }
+
+    function isValidPayment(data) {
+      return data.keys().hasAll([
+        'studentId', 'studentUid', 'receiptNumber', 'feeType', 'amount', 'paymentDate', 'paymentMode', 'recordedBy'
+      ]) &&
+      isValidString(data.studentId, 1, 50) &&
+      isValidString(data.studentUid, 1, 128) &&
+      isValidString(data.receiptNumber, 1, 50) &&
+      isValidString(data.feeType, 1, 50) &&
+      data.amount is number && data.amount > 0 &&
+      isValidString(data.paymentDate, 8, 20) &&
+      isValidString(data.paymentMode, 1, 30) &&
+      isValidString(data.recordedBy, 1, 128) &&
+      (!('studentName' in data) || isValidString(data.studentName, 0, 100)) &&
+      (!('className' in data) || isValidString(data.className, 0, 50)) &&
+      (!('section' in data) || isValidString(data.section, 0, 20)) &&
+      (!('board' in data) || isValidString(data.board, 0, 50)) &&
+      (!('feeId' in data) || isValidString(data.feeId, 0, 100)) &&
+      (!('feePeriod' in data) || isValidString(data.feePeriod, 0, 50)) &&
+      (!('receiptId' in data) || isValidString(data.receiptId, 0, 100)) &&
+      (!('paymentId' in data) || isValidString(data.paymentId, 0, 100)) &&
+      (!('razorpayPaymentId' in data) || isValidString(data.razorpayPaymentId, 0, 100)) &&
+      (!('razorpayOrderId' in data) || isValidString(data.razorpayOrderId, 0, 100)) &&
+      (!('currency' in data) || isValidString(data.currency, 0, 10)) &&
+      (!('method' in data) || isValidString(data.method, 0, 50)) &&
+      (!('status' in data) || isValidString(data.status, 0, 30)) &&
+      (!('verified' in data) || data.verified is bool) &&
+      (!('paidAt' in data) || data.paidAt is string || data.paidAt is timestamp) &&
+      (!('referenceNumber' in data) || isValidString(data.referenceNumber, 0, 100)) &&
+      (!('remarks' in data) || isValidString(data.remarks, 0, 500)) &&
+      (!('isDeleted' in data) || data.isDeleted is bool) &&
+      (!('createdAt' in data) || data.createdAt is string || data.createdAt is timestamp) &&
+      (!('updatedAt' in data) || data.updatedAt is string || data.updatedAt is timestamp);
+    }
+
+    function isValidStudentFee(data) {
+      return data.keys().hasAll([
+        'studentId', 'studentName', 'class', 'section', 'academicYear', 'feeMonth', 'feeType', 'amount', 'dueDate', 'status', 'paidAmount', 'pendingAmount'
+      ]) &&
+      isValidString(data.studentId, 1, 50) &&
+      isValidString(data.studentName, 1, 100) &&
+      isValidString(data.class, 1, 50) &&
+      isValidString(data.section, 1, 20) &&
+      isValidString(data.academicYear, 1, 20) &&
+      isValidString(data.feeMonth, 1, 50) &&
+      isValidString(data.feeType, 1, 50) &&
+      data.amount is number && data.amount > 0 &&
+      data.paidAmount is number && data.paidAmount >= 0 &&
+      data.pendingAmount is number && data.pendingAmount >= 0 &&
+      isValidString(data.dueDate, 8, 20) &&
+      data.status in ['PENDING', 'PARTIALLY_PAID', 'PAID', 'OVERDUE', 'CANCELLED'] &&
+      (!('className' in data) || isValidString(data.className, 0, 50)) &&
+      (!('studentUid' in data) || isValidString(data.studentUid, 0, 128)) &&
+      (!('paymentMethod' in data) || isValidString(data.paymentMethod, 0, 50)) &&
+      (!('paymentId' in data) || isValidString(data.paymentId, 0, 100)) &&
+      (!('orderId' in data) || isValidString(data.orderId, 0, 100)) &&
+      (!('receiptId' in data) || isValidString(data.receiptId, 0, 100)) &&
+      (!('paidAt' in data) || data.paidAt is string || data.paidAt is timestamp) &&
+      (!('createdAt' in data) || data.createdAt is string || data.createdAt is timestamp) &&
+      (!('updatedAt' in data) || data.updatedAt is string || data.updatedAt is timestamp);
+    }
+
+    function isValidRefund(data) {
+      return data.keys().hasAll([
+        'refundId', 'paymentId', 'amount', 'reason', 'status', 'createdAt'
+      ]) &&
+      isValidString(data.refundId, 1, 100) &&
+      isValidString(data.paymentId, 1, 100) &&
+      data.amount is number && data.amount > 0 &&
+      isValidString(data.reason, 1, 500) &&
+      data.status in ['PENDING', 'PROCESSED', 'FAILED'] &&
+      (!('studentId' in data) || isValidString(data.studentId, 0, 50)) &&
+      (!('studentName' in data) || isValidString(data.studentName, 0, 100)) &&
+      (!('feeId' in data) || isValidString(data.feeId, 0, 100)) &&
+      (!('processedBy' in data) || isValidString(data.processedBy, 0, 128)) &&
+      (!('createdAt' in data) || data.createdAt is string || data.createdAt is timestamp) &&
+      (!('updatedAt' in data) || data.updatedAt is string || data.updatedAt is timestamp);
+    }
+
+    function isValidPaymentTransaction(data) {
+      return data.keys().hasAll([
+        'studentId', 'amount', 'gateway', 'status'
+      ]) &&
+      isValidString(data.studentId, 1, 50) &&
+      data.amount is number && data.amount > 0 &&
+      isValidString(data.gateway, 1, 50) &&
+      data.status in ['PENDING', 'SUCCESS', 'FAILED', 'CANCELLED'] &&
+      (!('studentUid' in data) || isValidString(data.studentUid, 0, 128)) &&
+      (!('orderId' in data) || isValidString(data.orderId, 0, 100)) &&
+      (!('transactionId' in data) || isValidString(data.transactionId, 0, 100)) &&
+      (!('createdAt' in data) || data.createdAt is string || data.createdAt is timestamp) &&
+      (!('updatedAt' in data) || data.updatedAt is string || data.updatedAt is timestamp);
+    }
+
+    function isValidTimetable(data) {
+      return data.keys().hasAll(['academicSession', 'className', 'section', 'board', 'status']) &&
+             isValidString(data.academicSession, 1, 20) &&
+             isValidString(data.className, 1, 50) &&
+             isValidString(data.section, 1, 20) &&
+             data.board in ['CBSE', 'UP Board'] &&
+             data.status in ['DRAFT', 'PUBLISHED', 'ARCHIVED'];
+    }
+
+    function isValidTimetableEntry(data) {
+      return data.keys().hasAll(['timetableId', 'day', 'periodNumber', 'startTime', 'endTime', 'subject', 'type']) &&
+             isValidString(data.timetableId, 1, 128) &&
+             isValidString(data.day, 1, 20) &&
+             data.periodNumber is number &&
+             isValidString(data.startTime, 1, 20) &&
+             isValidString(data.endTime, 1, 20) &&
+             isValidString(data.subject, 1, 100) &&
+             data.type in ['CLASS', 'BREAK', 'ASSEMBLY'];
+    }
+
+    function isValidNotice(data) {
+      return data.keys().hasAll(['title', 'description', 'type', 'targetAudience', 'publishDate', 'priority', 'status']) &&
+             isValidString(data.title, 1, 200) &&
+             isValidString(data.description, 1, 5000) &&
+             isValidString(data.type, 1, 50) &&
+             isValidString(data.targetAudience, 1, 50) &&
+             isValidString(data.publishDate, 1, 30) &&
+             data.priority in ['NORMAL', 'IMPORTANT', 'URGENT'] &&
+             data.status in ['DRAFT', 'PUBLISHED', 'ARCHIVED'];
+    }
+
+    function isValidGalleryAlbum(data) {
+      return data.keys().hasAll(['id', 'name', 'status', 'createdBy']) &&
+             isValidString(data.id, 1, 128) &&
+             isValidString(data.name, 1, 200) &&
+             data.status in ['DRAFT', 'PUBLISHED', 'ARCHIVED'] &&
+             isValidString(data.createdBy, 1, 128);
+    }
+
+    function isValidGalleryMedia(data) {
+      return data.keys().hasAll(['id', 'albumId', 'fileName', 'fileType', 'mediaType', 'storagePath', 'downloadUrl', 'fileSize', 'status', 'uploadedBy']) &&
+             isValidString(data.id, 1, 128) &&
+             isValidString(data.albumId, 1, 128) &&
+             isValidString(data.fileName, 1, 255) &&
+             isValidString(data.fileType, 1, 50) &&
+             data.mediaType in ['IMAGE', 'VIDEO'] &&
+             isValidString(data.storagePath, 1, 500) &&
+             isValidString(data.downloadUrl, 1, 1000) &&
+             data.fileSize is number &&
+             data.status in ['DRAFT', 'PUBLISHED', 'ARCHIVED'] &&
+             isValidString(data.uploadedBy, 1, 128);
+    }
+
+    function isValidExamResult(data) {
+      return data.keys().hasAll(['studentUid', 'studentId', 'examName', 'academicSession', 'status']) &&
+             isValidString(data.studentUid, 1, 128) &&
+             isValidString(data.studentId, 1, 50) &&
+             isValidString(data.examName, 1, 100) &&
+             isValidString(data.academicSession, 1, 20) &&
+             data.status in ['PASSED', 'FAILED', 'SUPPLEMENTARY'];
+    }
+
+    function isValidSchoolSettings(data) {
+      return data.keys().hasAll(['name', 'address', 'phone']) &&
+             isValidString(data.name, 1, 128) &&
+             isValidString(data.address, 1, 255) &&
+             isValidString(data.phone, 1, 50);
+    }
+
+    function isValidAuditLog(data) {
+      return data.keys().hasAll(['actorUid', 'actorRole', 'action', 'targetType', 'timestamp', 'success']) &&
+             isValidString(data.actorUid, 1, 128) &&
+             isValidString(data.actorRole, 1, 64) &&
+             isValidString(data.action, 1, 64) &&
+             isValidString(data.targetType, 1, 64) &&
+             isValidString(data.timestamp, 1, 40) &&
+             data.success is bool &&
+             (!('targetId' in data) || isValidString(data.targetId, 0, 128)) &&
+             (!('targetName' in data) || isValidString(data.targetName, 0, 200)) &&
+             (!('actorEmail' in data) || isValidString(data.actorEmail, 0, 128)) &&
+             (!('ipAddress' in data) || isValidString(data.ipAddress, 0, 100));
+    }
+
+    // ================= COLLECTION MATCHES ================= //
+
+    // User Accounts Collection
+    match /users/{userId} {
+      allow get: if isUserSelf(userId) || isAdmin();
+      allow list: if isAdmin();
+      
+      // Bootstrap creation permitted for initial user, otherwise requires Admin
+      allow create: if (isAdmin() || !exists(/databases/$(database)/documents/users/$(userId))) && isValidUser(request.resource.data);
+      
+      allow update: if isValidUser(request.resource.data) && (
+        isAdmin() || (
+          isUserSelf(userId) &&
+          request.resource.data.role == resource.data.role &&
+          request.resource.data.status == resource.data.status &&
+          request.resource.data.uid == resource.data.uid
+        )
+      );
+
+      allow delete: if isSuperAdmin();
+    }
+
+    // Parents Collection
+    match /parents/{parentId} {
+      allow get: if isUserSelf(parentId) || isAdmin();
+      allow list: if isAdmin() || (isSignedIn() && (resource.data.uid == request.auth.uid || (request.auth.token.email != null && resource.data.email == request.auth.token.email)));
+      allow create, update: if isAdmin() || (isSignedIn() && request.auth.uid == parentId);
+      allow delete: if isAdmin();
+    }
+
+    // Parent Student Links Collection
+    match /parentStudentLinks/{linkId} {
+      allow get, list: if isAdmin() || (isSignedIn() && resource != null && resource.data.parentUid == request.auth.uid);
+      allow create, update: if isAdmin() && isValidParentStudentLink(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // Portal Student Links Collection
+    match /portalStudentLinks/{linkId} {
+      allow get, list: if isAdmin() || (isSignedIn() && resource != null && resource.data.portalUserUid == request.auth.uid);
+      allow create, update: if isAdmin() && isValidPortalStudentLink(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // Legacy Public Enquiries Collection
+    match /enquiries/{enquiryId} {
+      allow create: if isValidId(enquiryId) && isValidEnquiry(request.resource.data);
+      allow get, list, update, delete: if isAdmin();
+    }
+
+    // Official Admission Enquiries Collection
+    match /admissionEnquiries/{enquiryId} {
+      allow create: if isValidId(enquiryId) && isValidAdmissionEnquiry(request.resource.data);
+      allow get, list, update: if isAdmin();
+      allow delete: if isSuperAdmin();
+
+      // Internal Admin Notes Subcollection
+      match /notes/{noteId} {
+        allow get, list: if isAdmin();
+        allow create, update: if isAdmin() && isValidAdmissionEnquiryNote(request.resource.data);
+        allow delete: if isAdmin();
+      }
+    }
+
+    // Students Collection
+    match /students/{studentId} {
+      allow get: if isAdmin() || isTeacher() || (
+        isPortalUser() && (
+          request.auth.uid == studentId ||
+          resource.data.uid == request.auth.uid ||
+          resource.data.authUid == request.auth.uid ||
+          resource.data.parentUid == request.auth.uid ||
+          resource.data.status == 'ACTIVE'
+        )
+      );
+      allow list: if isAdmin() || isTeacher() || isPortalUser();
+      allow create, update: if isAdmin() && (isSuperAdmin() || isValidStudent(request.resource.data));
+      allow delete: if isSuperAdmin();
+    }
+
+    // Teachers Collection
+    match /teachers/{teacherId} {
+      allow get: if isAdmin() || (
+        isTeacher() && (
+          request.auth.uid == teacherId ||
+          resource.data.uid == request.auth.uid ||
+          (request.auth.token.email != null && resource.data.email == request.auth.token.email)
+        )
+      ) || (isSignedIn() && resource.data.status == 'ACTIVE');
+      allow list: if isAdmin() || isSignedIn();
+      allow create, update: if isAdmin() && isValidTeacher(request.resource.data);
+      allow delete: if isSuperAdmin();
+    }
+
+    // Attendance Collection
+    match /attendance/{attendanceId} {
+      allow get, list: if isAdmin() || isTeacher() || (
+        isPortalUser() && (
+          resource.data.studentUid == request.auth.uid ||
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
+            ('linkedStudents' in getUserData(request.auth.uid) && resource.data.studentUid in getUserData(request.auth.uid).linkedStudents) ||
+            ('linkedStudentIds' in getUserData(request.auth.uid) && resource.data.studentId in getUserData(request.auth.uid).linkedStudentIds)
+          ))
+        )
+      );
+      allow create, update: if (isAdmin() || isTeacher()) && (isSuperAdmin() || isValidAttendance(request.resource.data));
+      allow delete: if isAdmin();
+    }
+
+    // Fee Structures Collection
+    match /feeStructures/{feeStructureId} {
+      allow get, list: if isSignedIn();
+      allow create, update: if isAdmin() && isValidFeeStructure(request.resource.data);
+      allow delete: if isSuperAdmin();
+    }
+
+    // Payments Collection
+    match /payments/{paymentId} {
+      allow get, list: if isAdmin() || (
+        isPortalUser() && (
+          resource.data.studentUid == request.auth.uid ||
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
+            ('linkedStudents' in getUserData(request.auth.uid) && resource.data.studentUid in getUserData(request.auth.uid).linkedStudents) ||
+            ('linkedStudentIds' in getUserData(request.auth.uid) && resource.data.studentId in getUserData(request.auth.uid).linkedStudentIds)
+          ))
+        )
+      );
+      allow create, update: if isAdmin() && isValidPayment(request.resource.data);
+      allow delete: if isSuperAdmin();
+    }
+
+    // Student Fees Collection (Individual student fee records and status)
+    match /studentFees/{feeId} {
+      allow get, list: if isAdmin() || (
+        isPortalUser() && (
+          resource.data.studentUid == request.auth.uid ||
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
+            ('linkedStudents' in getUserData(request.auth.uid) && resource.data.studentUid in getUserData(request.auth.uid).linkedStudents) ||
+            ('linkedStudentIds' in getUserData(request.auth.uid) && resource.data.studentId in getUserData(request.auth.uid).linkedStudentIds)
+          ))
+        )
+      );
+      allow create, update: if isAdmin() && isValidStudentFee(request.resource.data);
+      allow delete: if isSuperAdmin();
+    }
+
+    // Refunds Collection
+    match /refunds/{refundId} {
+      allow get, list: if isAdmin();
+      allow create, update: if isAdmin() && isValidRefund(request.resource.data);
+      allow delete: if isSuperAdmin();
+    }
+
+    // Payment Transactions Collection
+    match /paymentTransactions/{transactionId} {
+      allow get, list: if isAdmin() || (isPortalUser() && resource != null && resource.data.studentUid == request.auth.uid);
+      allow create, update: if (isAdmin() || (isPortalUser() && request.resource.data.studentUid == request.auth.uid)) && isValidPaymentTransaction(request.resource.data);
+      allow delete: if isSuperAdmin();
+    }
+
+    // Timetables Collection
+    match /timetables/{timetableId} {
+      allow get, list: if isAdmin() || isTeacher() || (isSignedIn() && (resource == null || resource.data.status == 'PUBLISHED'));
+      allow create, update: if isAdmin() && isValidTimetable(request.resource.data);
+      allow delete: if isSuperAdmin();
+    }
+
+    // Timetable Entries Collection
+    match /timetableEntries/{entryId} {
+      allow get, list: if isAdmin() || isTeacher() || isSignedIn();
+      allow create, update: if isAdmin() && isValidTimetableEntry(request.resource.data);
+      allow delete: if isSuperAdmin();
+    }
+
+    // Notices Collection
+    match /notices/{noticeId} {
+      allow get, list: if isAdmin() || (resource != null && resource.data.status == 'PUBLISHED') || isSignedIn();
+      allow create, update: if isAdmin() && isValidNotice(request.resource.data);
+      allow delete: if isSuperAdmin();
+    }
+
+    // Gallery Albums Collection
+    match /galleryAlbums/{albumId} {
+      allow get, list: if isAdmin() || (resource != null && resource.data.status == 'PUBLISHED');
+      allow create, update: if isAdmin() && isValidGalleryAlbum(request.resource.data);
+      allow delete: if isSuperAdmin();
+    }
+
+    // Gallery Media Collection
+    match /galleryMedia/{mediaId} {
+      allow get, list: if isAdmin() || (resource != null && resource.data.status == 'PUBLISHED');
+      allow create, update: if isAdmin() && isValidGalleryMedia(request.resource.data);
+      allow delete: if isSuperAdmin();
+    }
+
+    // Exam Results Collection
+    match /examResults/{resultId} {
+      allow get, list: if isAdmin() || isTeacher() || (
+        isPortalUser() && (
+          resource.data.studentUid == request.auth.uid ||
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
+            ('linkedStudents' in getUserData(request.auth.uid) && resource.data.studentUid in getUserData(request.auth.uid).linkedStudents) ||
+            ('linkedStudentIds' in getUserData(request.auth.uid) && resource.data.studentId in getUserData(request.auth.uid).linkedStudentIds)
+          ))
+        )
+      );
+      allow create, update: if (isAdmin() || isTeacher()) && isValidExamResult(request.resource.data);
+      allow delete: if isSuperAdmin();
+    }
+
+    // School Settings Collection (Public Read, Admin Write)
+    match /schoolSettings/{settingId} {
+      allow get, list: if true;
+      allow create, update: if isAdmin() && isValidSchoolSettings(request.resource.data);
+      allow delete: if isSuperAdmin();
+    }
+
+    // Audit Logs Collection (Admin Read, Append-Only, Immutable)
+    match /auditLogs/{logId} {
+      allow get, list: if isAdmin();
+      allow create: if isSignedIn() && isValidAuditLog(request.resource.data);
+      allow update, delete: if false; // Immutable audit log trail
+    }
+
+    // Test Connection Path
     match /test/{docId} {
       allow read: if true;
     }

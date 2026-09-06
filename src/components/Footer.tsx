@@ -123,6 +123,14 @@ export default function Footer({ setActivePage }: FooterProps) {
               </li>
               <li>
                 <button 
+                  onClick={() => setActivePage('blog')}
+                  className="hover:text-white hover:underline transition-all text-gray-400 text-left"
+                >
+                  Educational Journal & Articles (Noida)
+                </button>
+              </li>
+              <li>
+                <button 
                   onClick={() => setActivePage('legal')}
                   className="hover:text-white hover:underline transition-all text-gray-400 text-left"
                 >

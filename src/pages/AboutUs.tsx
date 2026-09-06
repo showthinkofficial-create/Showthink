@@ -34,12 +34,12 @@ const departments = [
         image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=300&h=300'
       },
       {
-        name: 'Mrs. Neha Gupta',
-        role: 'Senior Commerce Faculty',
-        qualification: 'M.Com, MBA, B.Ed',
-        experience: '8 Years',
-        subjects: ['Accountancy', 'Business Studies', 'Economics'],
-        image: 'https://images.unsplash.com/photo-1580894732444-8fecef2601da?auto=format&fit=crop&q=80&w=300&h=300'
+        name: 'Mrs. Sharmila Singh',
+        role: 'Managing Director & Senior Faculty',
+        qualification: 'M.A, M.Ed',
+        experience: '12 Years',
+        subjects: ['Administration', 'Humanities', 'Social Guidance'],
+        image: 'https://www.aashrayvani.com/web/image/1319-c76a00f7/WhatsApp%20Image%202025-12-10%20at%2008.33.37_3f3199e3.webp'
       }
     ]
   },
@@ -165,22 +165,44 @@ export default function AboutUs() {
             <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-64 h-64 bg-white/5 rounded-full pointer-events-none"></div>
             <div className="space-y-6 relative z-10 text-center lg:text-left">
               <span className="inline-block px-3 py-1 bg-[#FFC907] text-[#001c46] text-[10px] font-bold uppercase tracking-widest rounded">
-                Leadership message
+                Leadership Team
               </span>
-              <div className="w-48 h-48 rounded-full border-4 border-[#FFC907]/30 overflow-hidden mx-auto lg:mx-0 shadow-lg">
-                <img
-                  src="https://www.aashrayvani.com/web/image/1320-8182ed66/WhatsApp%20Image%202025-12-10%20at%2008.32.58_427d4b8b.webp"
-                  alt="Mr. Raju Singh"
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-              <div>
-                <h4 className="text-xl font-sans font-black text-white">Mr. Raju Singh</h4>
-                <p className="text-xs text-[#FFC907] font-bold uppercase tracking-wider">
-                  School Principal, GP Academy
-                </p>
-                <p className="text-[10px] text-gray-400 mt-1">CBSE Academic Advisor & Veteran</p>
+              <div className="flex flex-col sm:flex-row lg:flex-col gap-6 items-center lg:items-start">
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 rounded-full border-2 border-[#FFC907] overflow-hidden shadow-lg shrink-0">
+                    <img
+                      src="https://www.aashrayvani.com/web/image/1320-8182ed66/WhatsApp%20Image%202025-12-10%20at%2008.32.58_427d4b8b.webp"
+                      alt="Mr. Raju Singh"
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-sans font-black text-white">Mr. Raju Singh</h4>
+                    <p className="text-xs text-[#FFC907] font-bold uppercase tracking-wider">
+                      School Principal
+                    </p>
+                    <p className="text-[10px] text-gray-300 mt-0.5">CBSE Academic Advisor</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 pt-4 border-t border-white/10 w-full">
+                  <div className="w-20 h-20 rounded-full border-2 border-[#FFC907] overflow-hidden shadow-lg shrink-0">
+                    <img
+                      src="https://www.aashrayvani.com/web/image/1319-c76a00f7/WhatsApp%20Image%202025-12-10%20at%2008.33.37_3f3199e3.webp"
+                      alt="Mrs. Sharmila Singh"
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-sans font-black text-white">Mrs. Sharmila Singh</h4>
+                    <p className="text-xs text-[#FFC907] font-bold uppercase tracking-wider">
+                      Managing Director
+                    </p>
+                    <p className="text-[10px] text-gray-300 mt-0.5">Educational Administrator</p>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="border-t border-white/10 pt-6 mt-8 text-center lg:text-left text-xs text-gray-300">

@@ -2,19 +2,19 @@ import { NewsItem, GalleryItem, FacilityItem } from '../types';
 
 export const SCHOOL_DETAILS = {
   name: 'GP Academy',
-  tagline: 'Knowledge Is the Biggest Money',
-  address: 'Bhangel, Goyal Colony, Salarpur Khadar, Noida, Uttar Pradesh 201304',
-  phone: '+91 9818776563',
+  tagline: 'Knowledge Is the biggest money',
+  address: 'Bhangel, Goyal Colony, Salarpur Khadar, Noida, Uttar Pradesh — 201304',
+  phone: '9818776563',
   email: 'admissions@gpacademy.edu.in',
-  hoursWeekday: 'Mon-Sat: 8:00 AM - 3:00 PM',
-  hoursWeekend: 'Sun: 9:00 AM - 2:00 PM',
+  hoursWeekday: 'Monday–Saturday: 8:00 AM – 3:00 PM',
+  hoursWeekend: 'Sunday: 9:00 AM – 2:00 PM',
   classes: 'Nursery to Class 12',
-  curriculum: 'CBSE & UP Board',
+  curriculum: 'Nursery to Class 8 (CBSE) | Class 10 to 12 (CBSE & UP Board options)',
   offers: {
-    admission: 'Free Admission (June to August)',
-    extras: 'Free School Tie & Belt upon successful onboarding',
-    referral: 'Bring 3 Admissions, Get 3 Months Tuition Fee waiver (T&C Apply)',
-    duration: 'Valid from June to August'
+    admission: 'Admission Free',
+    extras: 'Tie & Belt Free',
+    referral: 'If 3 students are admitted together during the applicable admission period: Fee Free for 3 months.',
+    duration: 'June to August'
   }
 };
 
