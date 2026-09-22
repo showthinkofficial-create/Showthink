@@ -32,7 +32,7 @@ export const ParentProfileView: React.FC<ParentProfileViewProps> = ({
   return (
     <div className="space-y-6 animate-fadeIn max-w-4xl mx-auto">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-3xl border border-gray-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
             <User className="w-5 h-5 text-[#001c46]" />
@@ -50,7 +50,7 @@ export const ParentProfileView: React.FC<ParentProfileViewProps> = ({
       </div>
 
       {/* Role & Security Restriction Notice */}
-      <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-start gap-3 text-amber-900 text-xs">
+      <div className="bg-amber-50 border border-amber-200 p-3.5 sm:p-4 rounded-2xl flex items-start gap-3 text-amber-900 text-xs">
         <Lock className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
         <div className="leading-relaxed font-medium">
           <span className="font-bold block text-amber-950">Security & Authorization Policy:</span>
@@ -59,21 +59,21 @@ export const ParentProfileView: React.FC<ParentProfileViewProps> = ({
       </div>
 
       {/* Parent Information Card */}
-      <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-6">
+      <div className="bg-white rounded-3xl border border-gray-200 p-4 sm:p-6 shadow-xs space-y-5 sm:space-y-6">
         <h3 className="text-xs font-black text-[#001c46] uppercase tracking-wider flex items-center gap-2">
           <Shield className="w-4 h-4 text-[#001c46]" />
           <span>Guardian Identity Details</span>
         </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-          <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs">
+          <div className="p-3.5 sm:p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-1">
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
               Parent / Guardian Name
             </span>
             <span className="text-sm font-black text-gray-900 block">{name}</span>
           </div>
 
-          <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-1">
+          <div className="p-3.5 sm:p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-1">
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
               Assigned Role
             </span>
@@ -85,7 +85,7 @@ export const ParentProfileView: React.FC<ParentProfileViewProps> = ({
             </div>
           </div>
 
-          <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-1">
+          <div className="p-3.5 sm:p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-1">
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
               Email Address
             </span>
@@ -95,7 +95,7 @@ export const ParentProfileView: React.FC<ParentProfileViewProps> = ({
             </div>
           </div>
 
-          <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-1">
+          <div className="p-3.5 sm:p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-1">
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
               Contact Phone Number
             </span>
@@ -108,7 +108,7 @@ export const ParentProfileView: React.FC<ParentProfileViewProps> = ({
       </div>
 
       {/* Linked Children Roster */}
-      <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-5">
+      <div className="bg-white rounded-3xl border border-gray-200 p-4 sm:p-6 shadow-xs space-y-4 sm:space-y-5">
         <div className="flex items-center justify-between pb-3 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-[#001c46]" />

@@ -59,35 +59,35 @@ export const ParentChildSelector: React.FC<ParentChildSelectorProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center justify-between gap-3 bg-white hover:bg-gray-50 border border-gray-200/90 rounded-2xl transition-all cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-[#001c46]/20 ${
-          compact ? 'px-3 py-1.5' : 'px-4 py-2.5'
+        className={`flex items-center justify-between gap-2 sm:gap-3 bg-white hover:bg-gray-50 border border-gray-200/90 rounded-2xl transition-all cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-[#001c46]/20 ${
+          compact ? 'px-2.5 py-1.5' : 'px-2.5 sm:px-4 py-1.5 sm:py-2.5'
         }`}
       >
-        <div className="flex items-center gap-2.5 min-w-0 text-left">
-          <div className="w-8 h-8 rounded-xl bg-[#001c46] text-[#FFC907] font-black text-xs flex items-center justify-center shrink-0">
-            {selectedChild ? selectedChild.name.charAt(0) : <Users className="w-4 h-4" />}
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 text-left">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#001c46] text-[#FFC907] font-black text-xs flex items-center justify-center shrink-0">
+            {selectedChild ? selectedChild.name.charAt(0) : <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
           </div>
           <div className="min-w-0">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block leading-tight">
+            <span className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest block leading-tight">
               Active Child
             </span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-black text-[#001c46] truncate max-w-[120px] sm:max-w-[160px]">
+            <div className="flex items-center gap-1 sm:gap-1.5">
+              <span className="text-xs font-black text-[#001c46] truncate max-w-[90px] xs:max-w-[120px] sm:max-w-[160px]">
                 {selectedChild ? selectedChild.name : 'Select Child'}
               </span>
               {selectedChild && (
-                <span className="text-[10px] font-bold text-gray-600 bg-gray-100 px-1.5 py-0.2 rounded shrink-0">
+                <span className="text-[9px] sm:text-[10px] font-bold text-gray-600 bg-gray-100 px-1 sm:px-1.5 py-0.2 rounded shrink-0">
                   {selectedChild.className}
                 </span>
               )}
             </div>
           </div>
         </div>
-        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-200 py-2 z-50 animate-scaleIn">
+        <div className="absolute right-0 mt-2 w-64 sm:w-72 max-w-[calc(100vw-32px)] bg-white rounded-2xl shadow-xl border border-gray-200 py-2 z-50 animate-scaleIn">
           <div className="px-4 py-2 border-b border-gray-100">
             <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider block">
               Switch Linked Child ({childrenList.length})

@@ -322,7 +322,7 @@ export const StudentAttendanceCalendar: React.FC<StudentAttendanceCalendarProps>
   return (
     <div id="student-attendance-calendar" className="space-y-6">
       {/* 1. Header & Controls Card */}
-      <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs">
+      <div className="bg-white rounded-3xl border border-gray-200 p-4 sm:p-6 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
@@ -340,38 +340,40 @@ export const StudentAttendanceCalendar: React.FC<StudentAttendanceCalendarProps>
           </div>
 
           {/* Month Selector Controls */}
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              id="calendar-prev-month-btn"
-              type="button"
-              onClick={handlePrevMonth}
-              className="p-2 text-gray-600 hover:text-[#001c46] hover:bg-gray-100 rounded-xl transition border border-gray-200"
-              title="Previous Month"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1">
+              <button
+                id="calendar-prev-month-btn"
+                type="button"
+                onClick={handlePrevMonth}
+                className="p-2 text-gray-600 hover:text-[#001c46] hover:bg-gray-100 rounded-xl transition border border-gray-200"
+                title="Previous Month"
+              >
+                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
 
-            <span className="text-sm font-black text-[#001c46] min-w-[150px] text-center px-3 py-1.5 bg-gray-50 rounded-xl border border-gray-200">
-              {monthLabel}
-            </span>
+              <span className="text-xs sm:text-sm font-black text-[#001c46] min-w-[120px] sm:min-w-[150px] text-center px-2.5 sm:px-3 py-1.5 bg-gray-50 rounded-xl border border-gray-200">
+                {monthLabel}
+              </span>
 
-            <button
-              id="calendar-next-month-btn"
-              type="button"
-              onClick={handleNextMonth}
-              className="p-2 text-gray-600 hover:text-[#001c46] hover:bg-gray-100 rounded-xl transition border border-gray-200"
-              title="Next Month"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
+              <button
+                id="calendar-next-month-btn"
+                type="button"
+                onClick={handleNextMonth}
+                className="p-2 text-gray-600 hover:text-[#001c46] hover:bg-gray-100 rounded-xl transition border border-gray-200"
+                title="Next Month"
+              >
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+            </div>
 
             <button
               id="calendar-current-month-btn"
               type="button"
               onClick={handleCurrentMonthJump}
-              className="px-3 py-2 text-xs font-bold text-[#001c46] bg-blue-50/50 hover:bg-blue-100/60 rounded-xl border border-blue-200 transition"
+              className="px-2.5 sm:px-3 py-1.5 text-xs font-bold text-[#001c46] bg-blue-50/50 hover:bg-blue-100/60 rounded-xl border border-blue-200 transition whitespace-nowrap"
             >
-              Current Month
+              Today
             </button>
 
             <input
@@ -379,105 +381,106 @@ export const StudentAttendanceCalendar: React.FC<StudentAttendanceCalendarProps>
               type="month"
               value={currentMonthStr}
               onChange={(e) => e.target.value && setCurrentMonthStr(e.target.value)}
-              className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#001c46]"
+              className="px-2.5 sm:px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#001c46]"
             />
           </div>
         </div>
 
         {/* 2. Monthly Summary Stats Metrics */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-6 pt-6 border-t border-gray-100">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-100">
           {/* Total Working Days */}
-          <div className="bg-gray-50/80 p-3.5 rounded-2xl border border-gray-200/70 text-center">
+          <div className="bg-gray-50/80 p-2.5 sm:p-3.5 rounded-2xl border border-gray-200/70 text-center">
             <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block">
               Total Days
             </span>
-            <span className="text-xl font-black text-gray-900 mt-0.5 block">
+            <span className="text-lg sm:text-xl font-black text-gray-900 mt-0.5 block">
               {stats.totalWorkingDays}
             </span>
           </div>
 
           {/* 🟢 Present Days */}
-          <div className="bg-emerald-50/60 p-3.5 rounded-2xl border border-emerald-200 text-center">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block flex items-center justify-center gap-1">
+          <div className="bg-emerald-50/60 p-2.5 sm:p-3.5 rounded-2xl border border-emerald-200 text-center">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 flex items-center justify-center gap-1">
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
               Present
             </span>
-            <span className="text-xl font-black text-emerald-700 mt-0.5 block">
+            <span className="text-lg sm:text-xl font-black text-emerald-700 mt-0.5 block">
               {stats.presentCount}
             </span>
           </div>
 
           {/* 🔴 Absent Days */}
-          <div className="bg-red-50/60 p-3.5 rounded-2xl border border-red-200 text-center">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-red-700 block flex items-center justify-center gap-1">
+          <div className="bg-red-50/60 p-2.5 sm:p-3.5 rounded-2xl border border-red-200 text-center">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-red-700 flex items-center justify-center gap-1">
               <span className="w-2 h-2 rounded-full bg-red-500"></span>
               Absent
             </span>
-            <span className="text-xl font-black text-red-700 mt-0.5 block">
+            <span className="text-lg sm:text-xl font-black text-red-700 mt-0.5 block">
               {stats.absentCount}
             </span>
           </div>
 
           {/* 🟡 Leave Days */}
-          <div className="bg-amber-50/60 p-3.5 rounded-2xl border border-amber-200 text-center">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 block flex items-center justify-center gap-1">
+          <div className="bg-amber-50/60 p-2.5 sm:p-3.5 rounded-2xl border border-amber-200 text-center">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 flex items-center justify-center gap-1">
               <span className="w-2 h-2 rounded-full bg-amber-500"></span>
               Leave
             </span>
-            <span className="text-xl font-black text-amber-700 mt-0.5 block">
+            <span className="text-lg sm:text-xl font-black text-amber-700 mt-0.5 block">
               {stats.leaveCount}
             </span>
           </div>
 
           {/* 📊 Attendance Percentage */}
-          <div className="col-span-2 sm:col-span-1 bg-[#001c46] text-white p-3.5 rounded-2xl text-center shadow-xs">
+          <div className="col-span-2 sm:col-span-1 bg-[#001c46] text-white p-2.5 sm:p-3.5 rounded-2xl text-center shadow-xs">
             <span className="text-[10px] font-bold uppercase tracking-wider text-blue-200 block">
               Attendance %
             </span>
-            <span className="text-xl font-black text-[#FFC907] mt-0.5 block">
+            <span className="text-lg sm:text-xl font-black text-[#FFC907] mt-0.5 block">
               {stats.percentage}%
             </span>
           </div>
         </div>
 
         {/* Status Indicators Legend */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-gray-100 text-xs">
-          <div className="flex flex-wrap items-center gap-4 text-gray-600 font-medium">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 mt-4 pt-3 border-t border-gray-100 text-xs">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-4 text-gray-600 font-medium">
             <span className="text-gray-400 font-bold uppercase text-[10px]">Legend:</span>
             <span className="inline-flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-100"></span>
-              <span className="font-bold text-gray-800">Present</span>
+              <span className="font-bold text-gray-800 text-[11px] sm:text-xs">Present</span>
             </span>
             <span className="inline-flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-red-100"></span>
-              <span className="font-bold text-gray-800">Absent</span>
+              <span className="font-bold text-gray-800 text-[11px] sm:text-xs">Absent</span>
             </span>
             <span className="inline-flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-amber-100"></span>
-              <span className="font-bold text-gray-800">Leave</span>
+              <span className="font-bold text-gray-800 text-[11px] sm:text-xs">Leave</span>
             </span>
             <span className="inline-flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-gray-300 ring-2 ring-gray-100"></span>
-              <span className="text-gray-500">Not Marked</span>
+              <span className="text-gray-500 text-[11px] sm:text-xs">Not Marked</span>
             </span>
           </div>
 
-          <div className="text-[11px] text-gray-500 italic">
-            * Note: Approved Leave is not counted as absent in percentage calculation.
+          <div className="text-[10px] sm:text-[11px] text-gray-500 italic">
+            * Approved Leave is not counted as absent.
           </div>
         </div>
       </div>
 
       {/* 3. Interactive Monthly Calendar Grid */}
-      <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-3xl border border-gray-200 p-2.5 sm:p-6 shadow-xs overflow-hidden">
         {/* Day of Week Headers */}
-        <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2 text-center">
+        <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-1.5 sm:mb-2 text-center">
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
             <div
               key={day}
-              className="py-2 text-[11px] font-black uppercase tracking-wider text-gray-400"
+              className="py-1.5 sm:py-2 text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-gray-400"
             >
-              {day}
+              <span className="hidden sm:inline">{day}</span>
+              <span className="sm:hidden">{day.slice(0, 2)}</span>
             </div>
           ))}
         </div>
@@ -489,27 +492,33 @@ export const StudentAttendanceCalendar: React.FC<StudentAttendanceCalendarProps>
             let bgClass = 'bg-gray-50/50 hover:bg-gray-100/70 border-gray-100 text-gray-700';
             let badgeBg = 'bg-gray-200 text-gray-600';
             let statusText = 'Not Marked';
+            let shortText = '—';
 
             if (item.status === 'PRESENT') {
               bgClass = 'bg-emerald-50/80 border-emerald-200 hover:bg-emerald-100/80 text-emerald-950 shadow-xs';
               badgeBg = 'bg-emerald-600 text-white';
               statusText = 'Present';
+              shortText = 'P';
             } else if (item.status === 'ABSENT') {
               bgClass = 'bg-red-50/80 border-red-200 hover:bg-red-100/80 text-red-950 shadow-xs';
               badgeBg = 'bg-red-600 text-white';
               statusText = 'Absent';
+              shortText = 'A';
             } else if (item.status === 'LEAVE') {
               bgClass = 'bg-amber-50/80 border-amber-200 hover:bg-amber-100/80 text-amber-950 shadow-xs';
               badgeBg = 'bg-amber-500 text-white';
               statusText = 'Leave';
+              shortText = 'L';
             } else if (item.status === 'LATE') {
               bgClass = 'bg-amber-50/80 border-amber-200 hover:bg-amber-100/80 text-amber-950 shadow-xs';
               badgeBg = 'bg-amber-600 text-white';
               statusText = 'Late';
+              shortText = 'LT';
             } else if (item.status === 'HALF_DAY') {
               bgClass = 'bg-blue-50/80 border-blue-200 hover:bg-blue-100/80 text-blue-950 shadow-xs';
               badgeBg = 'bg-blue-600 text-white';
               statusText = 'Half Day';
+              shortText = 'HD';
             }
 
             if (!item.isCurrentMonth) {
@@ -521,16 +530,16 @@ export const StudentAttendanceCalendar: React.FC<StudentAttendanceCalendarProps>
                 key={idx}
                 type="button"
                 onClick={() => handleDayClick(item)}
-                className={`min-h-[85px] sm:min-h-[105px] p-2 rounded-2xl border text-left flex flex-col justify-between transition group relative ${bgClass} ${
+                className={`min-h-[52px] sm:min-h-[85px] md:min-h-[105px] p-1 sm:p-2 rounded-xl sm:rounded-2xl border text-left flex flex-col justify-between transition group relative ${bgClass} ${
                   item.isToday ? 'ring-2 ring-[#001c46] ring-offset-1' : ''
                 }`}
               >
                 {/* Day Number and Today Indicator */}
                 <div className="flex items-center justify-between w-full">
                   <span
-                    className={`text-xs sm:text-sm font-black ${
+                    className={`text-[11px] sm:text-xs md:text-sm font-black ${
                       item.isToday
-                        ? 'bg-[#001c46] text-white w-6 h-6 rounded-full flex items-center justify-center'
+                        ? 'bg-[#001c46] text-white w-4 h-4 sm:w-6 sm:h-6 text-[9px] sm:text-xs rounded-full flex items-center justify-center'
                         : item.isCurrentMonth
                         ? 'text-gray-900'
                         : 'text-gray-400'
@@ -547,25 +556,26 @@ export const StudentAttendanceCalendar: React.FC<StudentAttendanceCalendarProps>
                 </div>
 
                 {/* Status Indicator pill */}
-                <div className="w-full mt-auto pt-1">
+                <div className="w-full mt-auto pt-0.5 sm:pt-1">
                   {isMarked ? (
                     <div className="space-y-1">
                       <span
-                        className={`inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-lg text-[9px] sm:text-[10px] font-bold tracking-tight uppercase ${badgeBg}`}
+                        className={`inline-flex items-center justify-center sm:justify-start gap-1 px-1 sm:px-2 py-0.5 rounded-md sm:rounded-lg text-[8px] sm:text-[10px] font-bold tracking-tight uppercase ${badgeBg} w-full sm:w-auto text-center`}
                       >
-                        {item.status === 'PRESENT' && <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />}
-                        {item.status === 'ABSENT' && <XCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" />}
-                        {item.status === 'LEAVE' && <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />}
-                        <span>{statusText}</span>
+                        {item.status === 'PRESENT' && <CheckCircle2 className="w-2 h-2 sm:w-3 sm:h-3 shrink-0" />}
+                        {item.status === 'ABSENT' && <XCircle className="w-2 h-2 sm:w-3 sm:h-3 shrink-0" />}
+                        {item.status === 'LEAVE' && <Clock className="w-2 h-2 sm:w-3 sm:h-3 shrink-0" />}
+                        <span className="hidden sm:inline">{statusText}</span>
+                        <span className="sm:hidden">{shortText}</span>
                       </span>
                       {item.record?.remarks && (
-                        <p className="hidden sm:block text-[9px] text-gray-600 truncate max-w-full font-medium">
+                        <p className="hidden md:block text-[9px] text-gray-600 truncate max-w-full font-medium">
                           {item.record.remarks}
                         </p>
                       )}
                     </div>
                   ) : (
-                    <div className="text-gray-300 group-hover:text-gray-400 transition text-[10px] font-medium">
+                    <div className="text-gray-300 group-hover:text-gray-400 transition text-[9px] sm:text-[10px] font-medium text-center sm:text-left">
                       <span className="hidden sm:inline">Not Marked</span>
                       <span className="sm:hidden">—</span>
                     </div>
@@ -579,8 +589,8 @@ export const StudentAttendanceCalendar: React.FC<StudentAttendanceCalendarProps>
 
       {/* 4. Day Details / Admin Edit Modal */}
       {selectedDayRecord && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-gray-200 shadow-2xl max-w-md w-full p-6 animate-scaleUp space-y-5">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-3xl border border-gray-200 shadow-2xl max-w-md w-full p-4 sm:p-6 animate-scaleUp space-y-4 sm:space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-gray-100">
               <div>
                 <h3 className="text-base font-black text-[#001c46]">

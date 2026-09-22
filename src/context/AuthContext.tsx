@@ -12,7 +12,9 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<UserProfile>;
   loginWithGoogle: () => Promise<UserProfile>;
   logout: () => Promise<void>;
-  sendPasswordReset: (email: string) => Promise<void>;
+  sendPasswordReset: (email: string, returnPath?: string) => Promise<void>;
+  verifyResetCode: (code: string) => Promise<string>;
+  confirmPasswordReset: (code: string, newPassword: string) => Promise<void>;
   clearError: () => void;
   refreshProfile: () => Promise<void>;
 }
@@ -137,16 +139,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const sendPasswordReset = async (email: string) => {
+  const sendPasswordReset = async (email: string, returnPath?: string) => {
     setError(null);
     try {
-      await authService.sendPasswordReset(email);
+      await authService.sendPasswordReset(email, returnPath);
     } catch (err: any) {
       let msg = err.message || 'Failed to send password reset email.';
       if (err.code === 'auth/user-not-found') {
         msg = 'No registered account found with this email address.';
       } else if (err.code === 'auth/invalid-email') {
         msg = 'Please enter a valid email address.';
+      } else if (err.code === 'auth/too-many-requests') {
+        msg = 'Too many requests. Please wait a few moments before trying again.';
+      }
+      setError(msg);
+      throw new Error(msg);
+    }
+  };
+
+  const verifyResetCode = async (code: string): Promise<string> => {
+    setError(null);
+    try {
+      return await authService.verifyPasswordResetCode(code);
+    } catch (err: any) {
+      let msg = 'The password reset link is invalid or has expired.';
+      if (err.code === 'auth/expired-action-code') {
+        msg = 'This password reset link has expired. Please request a new one.';
+      } else if (err.code === 'auth/invalid-action-code') {
+        msg = 'This password reset link is invalid or has already been used.';
+      } else if (err.code === 'auth/user-disabled') {
+        msg = 'This user account has been disabled.';
+      } else if (err.code === 'auth/user-not-found') {
+        msg = 'No account found corresponding to this security token.';
+      }
+      setError(msg);
+      throw new Error(msg);
+    }
+  };
+
+  const confirmPasswordReset = async (code: string, newPassword: string): Promise<void> => {
+    setError(null);
+    try {
+      await authService.confirmPasswordReset(code, newPassword);
+    } catch (err: any) {
+      let msg = 'Failed to update password.';
+      if (err.code === 'auth/weak-password') {
+        msg = 'Password is too weak. Please choose a password with at least 6 characters.';
+      } else if (err.code === 'auth/expired-action-code' || err.code === 'auth/invalid-action-code') {
+        msg = 'This password reset link has expired or is invalid. Please request a new reset link.';
       }
       setError(msg);
       throw new Error(msg);
@@ -172,6 +212,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loginWithGoogle,
         logout,
         sendPasswordReset,
+        verifyResetCode,
+        confirmPasswordReset,
         clearError,
         refreshProfile,
       }}

@@ -50,7 +50,7 @@ export const StudentTimetableView: React.FC<StudentTimetableViewProps> = ({
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Header Title Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-3xl border border-gray-200 shadow-xs">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-[#001c46]">
             <Clock className="w-6 h-6 text-[#FFC907]" />
@@ -62,19 +62,19 @@ export const StudentTimetableView: React.FC<StudentTimetableViewProps> = ({
         </div>
 
         {timetable ? (
-          <div className="flex items-center gap-2 bg-[#001c46] text-white px-4 py-2 rounded-2xl shrink-0">
+          <div className="flex items-center gap-2 bg-[#001c46] text-white px-4 py-2 rounded-2xl shrink-0 w-fit">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-xs font-bold">{timetable.className} ({timetable.section}) Schedule</span>
           </div>
         ) : (
-          <div className="bg-amber-100 text-amber-800 px-3 py-1.5 rounded-xl text-xs font-bold shrink-0">
+          <div className="bg-amber-100 text-amber-800 px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 w-fit">
             Published Timetable Pending
           </div>
         )}
       </div>
 
       {!timetable ? (
-        <div className="bg-white p-12 rounded-3xl border border-gray-200 text-center space-y-3">
+        <div className="bg-white p-8 sm:p-12 rounded-3xl border border-gray-200 text-center space-y-3">
           <Clock className="w-12 h-12 text-gray-300 mx-auto" />
           <h3 className="font-bold text-gray-800">No Published Timetable Found</h3>
           <p className="text-xs text-gray-500 max-w-md mx-auto">
@@ -82,7 +82,7 @@ export const StudentTimetableView: React.FC<StudentTimetableViewProps> = ({
           </p>
         </div>
       ) : (
-        <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm space-y-6">
+        <div className="bg-white p-4 sm:p-6 rounded-3xl border border-gray-200 shadow-sm space-y-4 sm:space-y-6">
           {/* Day Selection Tabs */}
           <div className="flex items-center space-x-2 overflow-x-auto pb-2 border-b border-gray-100 scrollbar-none">
             {DAYS.map((day) => {
@@ -92,7 +92,7 @@ export const StudentTimetableView: React.FC<StudentTimetableViewProps> = ({
                 <button
                   key={day}
                   onClick={() => setSelectedDay(day)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all whitespace-nowrap ${
+                  className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl text-xs font-bold transition-all whitespace-nowrap shrink-0 cursor-pointer ${
                     isSelected
                       ? 'bg-[#001c46] text-[#FFC907] shadow-md'
                       : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
@@ -112,7 +112,7 @@ export const StudentTimetableView: React.FC<StudentTimetableViewProps> = ({
 
           {/* Daily Schedule List */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between text-xs font-bold text-gray-500 px-2 pb-1">
+            <div className="flex items-center justify-between text-xs font-bold text-gray-500 px-1 sm:px-2 pb-1">
               <span>{selectedDay} Schedule</span>
               <span>{dayEntries.length} Periods Scheduled</span>
             </div>
@@ -128,7 +128,7 @@ export const StudentTimetableView: React.FC<StudentTimetableViewProps> = ({
                   return (
                     <div
                       key={entry.id}
-                      className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                      className={`p-3.5 sm:p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 ${
                         isBreak
                           ? 'bg-amber-50/80 border-amber-200 text-amber-950'
                           : 'bg-white border-gray-200 hover:border-[#001c46] shadow-2xs'

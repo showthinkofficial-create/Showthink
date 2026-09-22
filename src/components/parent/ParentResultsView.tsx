@@ -46,7 +46,7 @@ export const ParentResultsView: React.FC<ParentResultsViewProps> = ({
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-3xl border border-gray-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
             <Award className="w-5 h-5 text-[#001c46]" />
@@ -92,7 +92,7 @@ export const ParentResultsView: React.FC<ParentResultsViewProps> = ({
                 className="bg-white rounded-3xl border border-gray-200 shadow-xs overflow-hidden"
               >
                 {/* Header Strip */}
-                <div className="bg-[#001c46] text-white p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4">
+                <div className="bg-[#001c46] text-white p-4 sm:p-6 flex flex-wrap items-center justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#FFC907] bg-white/10 px-2.5 py-0.5 rounded-md">
@@ -108,17 +108,17 @@ export const ParentResultsView: React.FC<ParentResultsViewProps> = ({
                   </div>
 
                   {/* Pass/Fail, Percentage & Print Button */}
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                     <div className="text-right">
                       <span className="text-[10px] text-gray-300 uppercase font-bold block">
                         Aggregate Score
                       </span>
-                      <span className="text-2xl font-black text-[#FFC907]">
+                      <span className="text-xl sm:text-2xl font-black text-[#FFC907]">
                         {result.percentage}%
                       </span>
                     </div>
                     <div
-                      className={`px-3.5 py-1.5 rounded-xl font-black text-xs uppercase tracking-wider ${
+                      className={`px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl font-black text-xs uppercase tracking-wider ${
                         isPassed
                           ? 'bg-emerald-500 text-white shadow-sm'
                           : 'bg-red-500 text-white shadow-sm'
@@ -144,9 +144,9 @@ export const ParentResultsView: React.FC<ParentResultsViewProps> = ({
                 </div>
 
                 {/* Score Table */}
-                <div className="p-6 space-y-5">
+                <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
                   <div className="overflow-x-auto rounded-2xl border border-gray-100">
-                    <table className="w-full text-left text-xs">
+                    <table className="w-full text-left text-xs min-w-[480px]">
                       <thead className="bg-gray-50 text-gray-600 uppercase text-[10px] font-bold border-b border-gray-100">
                         <tr>
                           <th className="px-4 py-3">Subject</th>

@@ -21,13 +21,19 @@ export default function AdminLayout({
   const { logout } = useAuth();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
+  const handleAdminLogout = async () => {
+    await logout();
+    window.history.pushState({}, '', '/admin/login');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
   return (
     <div className="min-h-screen bg-gray-50/70 text-gray-800 font-sans antialiased flex flex-col">
       {/* Sidebar Navigation */}
       <AdminSidebar
         currentPath={currentPath}
         onNavigate={onNavigate}
-        onLogout={logout}
+        onLogout={handleAdminLogout}
         isOpenMobile={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
@@ -38,6 +44,7 @@ export default function AdminLayout({
         <AdminTopbar
           onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
           onNavigateHome={onNavigateHome}
+          onLogout={handleAdminLogout}
           activeTitle={activeTitle}
         />
 

@@ -51,7 +51,7 @@ export const ParentTimetableView: React.FC<ParentTimetableViewProps> = ({
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-3xl border border-gray-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-[#001c46]" />
@@ -84,7 +84,7 @@ export const ParentTimetableView: React.FC<ParentTimetableViewProps> = ({
               key={day}
               type="button"
               onClick={() => setSelectedDay(day)}
-              className={`px-4 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+              className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 isSelected
                   ? 'bg-[#001c46] text-[#FFC907] shadow-sm scale-102'
                   : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
@@ -97,7 +97,7 @@ export const ParentTimetableView: React.FC<ParentTimetableViewProps> = ({
       </div>
 
       {/* Timetable Period Schedule Cards */}
-      <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-4">
+      <div className="bg-white rounded-3xl border border-gray-200 p-4 sm:p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-gray-100">
           <h3 className="text-sm font-black text-[#001c46] uppercase tracking-wider flex items-center gap-2">
             <span>Schedule for {selectedDay}</span>
@@ -113,7 +113,7 @@ export const ParentTimetableView: React.FC<ParentTimetableViewProps> = ({
             <p className="font-medium">No periods scheduled for {selectedDay}.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {dayEntries.map((period, idx) => {
               const isBreak = period.type === 'BREAK';
               const isAssembly = period.type === 'ASSEMBLY';
@@ -121,7 +121,7 @@ export const ParentTimetableView: React.FC<ParentTimetableViewProps> = ({
               return (
                 <div
                   key={period.id || idx}
-                  className={`p-5 rounded-2xl border transition-all ${
+                  className={`p-3.5 sm:p-5 rounded-2xl border transition-all ${
                     isBreak
                       ? 'bg-amber-50/50 border-amber-200'
                       : isAssembly

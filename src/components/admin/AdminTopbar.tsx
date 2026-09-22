@@ -6,12 +6,14 @@ interface AdminTopbarProps {
   onToggleMobileSidebar: () => void;
   onNavigateHome: () => void;
   activeTitle?: string;
+  onLogout?: () => void;
 }
 
 export default function AdminTopbar({
   onToggleMobileSidebar,
   onNavigateHome,
   activeTitle = 'GP Academy Admin Panel',
+  onLogout,
 }: AdminTopbarProps) {
   const { userProfile, logout } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
@@ -131,7 +133,8 @@ export default function AdminTopbar({
                   <button
                     onClick={() => {
                       setShowDropdown(false);
-                      logout();
+                      if (onLogout) onLogout();
+                      else logout();
                     }}
                     className="w-full text-left px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
                   >

@@ -35,7 +35,7 @@ export const StudentFeesView: React.FC<StudentFeesViewProps> = ({
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Title Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-3xl border border-gray-200 shadow-xs">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-[#001c46]">
             <CreditCard className="w-6 h-6 text-[#FFC907]" />
@@ -49,7 +49,7 @@ export const StudentFeesView: React.FC<StudentFeesViewProps> = ({
         {/* Pay Fee Button */}
         <button
           onClick={() => setShowPayModal(true)}
-          className="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-black text-xs px-5 py-3 rounded-2xl shadow-md transition-all active:scale-95 shrink-0"
+          className="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-black text-xs px-5 py-3 rounded-2xl shadow-md transition-all active:scale-95 w-full sm:w-auto shrink-0"
         >
           <CreditCard className="w-4 h-4 text-[#FFC907]" />
           <span>Pay Fee Online</span>
@@ -57,30 +57,30 @@ export const StudentFeesView: React.FC<StudentFeesViewProps> = ({
       </div>
 
       {/* Primary Financial Metric Strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Fee */}
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-1">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-xs space-y-1">
           <span className="text-[10px] font-bold text-gray-400 uppercase">Total Fee</span>
           <div className="text-2xl font-black text-gray-900">₹{totalFee.toLocaleString('en-IN')}</div>
           <span className="text-[11px] text-gray-500">Session 2026–2027</span>
         </div>
 
         {/* Paid Amount */}
-        <div className="bg-emerald-50 p-5 rounded-2xl border border-emerald-200 shadow-xs space-y-1 text-emerald-950">
+        <div className="bg-emerald-50 p-4 sm:p-5 rounded-2xl border border-emerald-200 shadow-xs space-y-1 text-emerald-950">
           <span className="text-[10px] font-bold text-emerald-700 uppercase">Paid Amount</span>
           <div className="text-2xl font-black text-emerald-800">₹{paidFee.toLocaleString('en-IN')}</div>
           <span className="text-[11px] text-emerald-700 font-medium">Verified Receipts</span>
         </div>
 
         {/* Pending Amount */}
-        <div className="bg-amber-50 p-5 rounded-2xl border border-amber-200 shadow-xs space-y-1 text-amber-950">
+        <div className="bg-amber-50 p-4 sm:p-5 rounded-2xl border border-amber-200 shadow-xs space-y-1 text-amber-950">
           <span className="text-[10px] font-bold text-amber-700 uppercase">Pending Amount</span>
           <div className="text-2xl font-black text-amber-800">₹{pendingFee.toLocaleString('en-IN')}</div>
           <span className="text-[11px] text-amber-700 font-medium">Due Balance</span>
         </div>
 
         {/* Fee Status */}
-        <div className="bg-[#001c46] text-white p-5 rounded-2xl shadow-xs space-y-1">
+        <div className="bg-[#001c46] text-white p-4 sm:p-5 rounded-2xl shadow-xs space-y-1">
           <span className="text-[10px] font-bold text-[#FFC907] uppercase">Fee Status</span>
           <div className="text-xl font-black uppercase text-white mt-1">{feeStatus}</div>
           <span className="text-[11px] text-blue-200">Account Status</span>
@@ -88,8 +88,8 @@ export const StudentFeesView: React.FC<StudentFeesViewProps> = ({
       </div>
 
       {/* Payment History Table */}
-      <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm space-y-4">
-        <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+      <div className="bg-white p-4 sm:p-6 rounded-3xl border border-gray-200 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <Receipt className="w-5 h-5 text-[#001c46]" />
             <h2 className="font-black text-base text-gray-900">Payment History & Ledger</h2>
@@ -106,7 +106,7 @@ export const StudentFeesView: React.FC<StudentFeesViewProps> = ({
           </div>
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-gray-100">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left text-xs min-w-[640px]">
               <thead className="bg-[#001c46] text-white font-bold uppercase text-[10px] tracking-wider">
                 <tr>
                   <th className="px-4 py-3">Receipt No.</th>

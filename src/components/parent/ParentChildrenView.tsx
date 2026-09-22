@@ -28,7 +28,7 @@ export const ParentChildrenView: React.FC<ParentChildrenViewProps> = ({
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-3xl border border-gray-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-[#001c46]" />
@@ -45,7 +45,7 @@ export const ParentChildrenView: React.FC<ParentChildrenViewProps> = ({
       </div>
 
       {/* Notice Banner */}
-      <div className="bg-blue-50 border border-blue-200/80 p-4 rounded-2xl flex items-start gap-3 text-xs text-blue-900">
+      <div className="bg-blue-50 border border-blue-200/80 p-3.5 sm:p-4 rounded-2xl flex items-start gap-3 text-xs text-blue-900">
         <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
         <div className="leading-relaxed">
           <span className="font-bold block">Official Academic Record View:</span>
@@ -54,7 +54,7 @@ export const ParentChildrenView: React.FC<ParentChildrenViewProps> = ({
       </div>
 
       {/* Children Cards List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         {childrenList.map((child) => {
           const isSelected = selectedChild?.uid === child.uid;
           const isDisabled = child.status === 'DISABLED';
@@ -79,25 +79,25 @@ export const ParentChildrenView: React.FC<ParentChildrenViewProps> = ({
                 }`}
               />
 
-              <div className="p-6 space-y-5">
+              <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
                 {/* Profile Header Row */}
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-4 min-w-0">
+                <div className="flex items-start justify-between gap-3 sm:gap-4">
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                     {child.profilePhoto ? (
                       <img
                         src={child.profilePhoto}
                         alt={child.name}
-                        className="w-14 h-14 rounded-2xl object-cover border-2 border-gray-100 shrink-0 shadow-xs"
+                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl object-cover border-2 border-gray-100 shrink-0 shadow-xs"
                       />
                     ) : (
-                      <div className="w-14 h-14 rounded-2xl bg-[#001c46] text-[#FFC907] font-black text-xl flex items-center justify-center shrink-0 shadow-xs">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#001c46] text-[#FFC907] font-black text-lg sm:text-xl flex items-center justify-center shrink-0 shadow-xs">
                         {child.name.charAt(0)}
                       </div>
                     )}
 
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-base font-black text-gray-900 truncate">
+                        <h3 className="text-sm sm:text-base font-black text-gray-900 truncate">
                           {child.name}
                         </h3>
                         {isSelected && (
@@ -136,7 +136,7 @@ export const ParentChildrenView: React.FC<ParentChildrenViewProps> = ({
                 )}
 
                 {/* Details Grid */}
-                <div className="grid grid-cols-2 gap-3 bg-gray-50/80 p-4 rounded-2xl border border-gray-100 text-xs">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 bg-gray-50/80 p-3 sm:p-4 rounded-2xl border border-gray-100 text-xs">
                   <div>
                     <span className="text-gray-400 font-bold block text-[10px] uppercase">Class & Section</span>
                     <span className="font-black text-gray-900">

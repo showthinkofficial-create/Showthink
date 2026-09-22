@@ -44,10 +44,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        (request.auth.token.email != null && (
-          request.auth.token.email == 'showthinkofficial@gmail.com' ||
-          request.auth.token.email.matches('.*admin.*')
-        )) ||
+        isSuperAdmin() ||
         (
           isUserActive(request.auth.uid) &&
           (getUserData(request.auth.uid).role in ['SUPER_ADMIN', 'ADMIN'])
@@ -80,7 +77,10 @@ service cloud.firestore {
              isValidString(data.updatedAt, 1, 40) &&
              (!('loginEnabled' in data) || data.loginEnabled is bool) &&
              (!('linkedStudents' in data) || data.linkedStudents is list) &&
-             (!('linkedStudentIds' in data) || data.linkedStudentIds is list);
+             (!('linkedStudentIds' in data) || data.linkedStudentIds is list) &&
+             (!('teacherId' in data) || data.teacherId == null || isValidString(data.teacherId, 0, 100)) &&
+             (!('phone' in data) || data.phone == null || isValidString(data.phone, 0, 30)) &&
+             (!('userType' in data) || data.userType == null || data.userType in ['TEACHER', 'PARENT_STUDENT', 'ADMIN']);
     }
 
     function isValidPortalStudentLink(data) {
@@ -205,6 +205,11 @@ service cloud.firestore {
       data.status in ['ACTIVE', 'DISABLED'] &&
       isValidString(data.createdAt, 1, 40) &&
       isValidString(data.updatedAt, 1, 40) &&
+      (!('role' in data) || data.role == 'TEACHER') &&
+      (!('assignedSections' in data) || data.assignedSections is list) &&
+      (!('isDeleted' in data) || data.isDeleted is bool) &&
+      (!('deletedAt' in data) || data.deletedAt == null || isValidString(data.deletedAt, 0, 40)) &&
+      (!('deletedBy' in data) || data.deletedBy == null || isValidString(data.deletedBy, 0, 128)) &&
       (!('alternatePhone' in data) || data.alternatePhone == null || isValidString(data.alternatePhone, 0, 30)) &&
       (!('qualification' in data) || data.qualification == null || isValidString(data.qualification, 0, 200)) &&
       (!('address' in data) || data.address == null || isValidString(data.address, 0, 500)) &&
@@ -404,7 +409,7 @@ service cloud.firestore {
              isValidString(data.studentId, 1, 50) &&
              isValidString(data.examName, 1, 100) &&
              isValidString(data.academicSession, 1, 20) &&
-             data.status in ['PASSED', 'FAILED', 'SUPPLEMENTARY'];
+             data.status in ['PASSED', 'FAILED', 'SUPPLEMENTARY', 'PUBLISHED', 'DRAFT'];
     }
 
     function isValidSchoolSettings(data) {
@@ -435,8 +440,8 @@ service cloud.firestore {
       allow get: if isUserSelf(userId) || isAdmin();
       allow list: if isAdmin();
       
-      // Bootstrap creation permitted for initial user, otherwise requires Admin
-      allow create: if (isAdmin() || !exists(/databases/$(database)/documents/users/$(userId))) && isValidUser(request.resource.data);
+      // Only Admin can create users, or a new user registering self with strictly PORTAL_USER/STUDENT/PARENT role (or institutional super admin)
+      allow create: if ((isAdmin() && isValidUser(request.resource.data)) || (!exists(/databases/$(database)/documents/users/$(userId)) && isValidUser(request.resource.data) && (isSuperAdmin() || request.resource.data.role in ['PORTAL_USER', 'STUDENT', 'PARENT'])));
       
       allow update: if isValidUser(request.resource.data) && (
         isAdmin() || (
@@ -500,10 +505,23 @@ service cloud.firestore {
           resource.data.uid == request.auth.uid ||
           resource.data.authUid == request.auth.uid ||
           resource.data.parentUid == request.auth.uid ||
-          resource.data.status == 'ACTIVE'
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
+            ('linkedStudents' in getUserData(request.auth.uid) && resource.data.uid in getUserData(request.auth.uid).linkedStudents) ||
+            ('linkedStudentIds' in getUserData(request.auth.uid) && resource.data.studentId in getUserData(request.auth.uid).linkedStudentIds)
+          ))
         )
       );
-      allow list: if isAdmin() || isTeacher() || isPortalUser();
+      allow list: if isAdmin() || isTeacher() || (
+        isPortalUser() && (
+          resource.data.uid == request.auth.uid ||
+          resource.data.authUid == request.auth.uid ||
+          resource.data.parentUid == request.auth.uid ||
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
+            ('linkedStudents' in getUserData(request.auth.uid) && resource.data.uid in getUserData(request.auth.uid).linkedStudents) ||
+            ('linkedStudentIds' in getUserData(request.auth.uid) && resource.data.studentId in getUserData(request.auth.uid).linkedStudentIds)
+          ))
+        )
+      );
       allow create, update: if isAdmin() && (isSuperAdmin() || isValidStudent(request.resource.data));
       allow delete: if isSuperAdmin();
     }

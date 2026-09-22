@@ -44,7 +44,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-[#001c46] via-[#1a3a6c] to-[#001c46] text-white p-6 sm:p-8 rounded-3xl shadow-md relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[#001c46] via-[#1a3a6c] to-[#001c46] text-white p-4 sm:p-8 rounded-3xl shadow-md relative overflow-hidden">
         <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-white/5 skew-x-12 pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
@@ -59,7 +59,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
             </p>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex items-center gap-4 shrink-0">
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 p-3.5 sm:p-4 rounded-2xl flex items-center gap-4 shrink-0">
             <div className="w-12 h-12 rounded-xl bg-[#FFC907] text-[#001c46] font-black text-lg flex items-center justify-center shrink-0">
               {student.className.replace('Class ', '')}
             </div>
@@ -73,9 +73,9 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
       </div>
 
       {/* Primary Key Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Attendance % Card */}
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-3">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Attendance %</span>
             <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
@@ -102,7 +102,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
         </div>
 
         {/* Pending Fee Card */}
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-3">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Pending Fee</span>
             <div className={`p-2 rounded-xl ${pendingFee > 0 ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'}`}>
@@ -127,7 +127,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
         </div>
 
         {/* Latest Result Card */}
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-3">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Latest Result</span>
             <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
@@ -161,7 +161,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
         </div>
 
         {/* Student Profile Overview Card */}
-        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-3">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Board & Status</span>
             <div className="p-2 bg-purple-50 text-purple-600 rounded-xl">
@@ -187,7 +187,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
       </div>
 
       {/* Student Details Summary Grid */}
-      <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm space-y-6">
+      <div className="bg-white p-4 sm:p-6 rounded-3xl border border-gray-200 shadow-sm space-y-4 sm:space-y-6">
         <div className="flex items-center justify-between pb-4 border-b border-gray-100">
           <div className="flex items-center gap-2 text-[#001c46]">
             <User className="w-5 h-5 text-[#FFC907]" />
@@ -198,7 +198,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 text-xs">
           <div className="p-3.5 bg-gray-50 rounded-xl space-y-0.5 border border-gray-100">
             <span className="text-gray-400 font-medium block text-[11px]">Full Name</span>
             <span className="font-bold text-gray-900 text-sm">{student.name}</span>
@@ -222,7 +222,7 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
       </div>
 
       {/* Quick Navigation Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5 sm:gap-3">
         <button
           onClick={() => onNavigateTab('attendance')}
           className="p-4 bg-white hover:bg-blue-50/60 rounded-2xl border border-gray-200 text-center space-y-2 transition-all hover:scale-[1.02] shadow-xs group"

@@ -34,7 +34,7 @@ export const ParentGalleryView: React.FC<ParentGalleryViewProps> = ({
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-3xl border border-gray-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
             <Image className="w-5 h-5 text-[#001c46]" />
@@ -56,7 +56,7 @@ export const ParentGalleryView: React.FC<ParentGalleryViewProps> = ({
           <button
             type="button"
             onClick={() => setSelectedAlbumId('ALL')}
-            className={`px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+            className={`px-3.5 sm:px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               selectedAlbumId === 'ALL'
                 ? 'bg-[#001c46] text-[#FFC907] shadow-sm'
                 : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
@@ -73,7 +73,7 @@ export const ParentGalleryView: React.FC<ParentGalleryViewProps> = ({
                 key={album.id}
                 type="button"
                 onClick={() => setSelectedAlbumId(album.id)}
-                className={`px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                className={`px-3.5 sm:px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   isSelected
                     ? 'bg-[#001c46] text-[#FFC907] shadow-sm'
                     : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
@@ -89,7 +89,7 @@ export const ParentGalleryView: React.FC<ParentGalleryViewProps> = ({
 
       {/* Media Grid */}
       {filteredMedia.length === 0 ? (
-        <div className="bg-white rounded-3xl border border-gray-200 p-12 text-center space-y-3 shadow-xs">
+        <div className="bg-white rounded-3xl border border-gray-200 p-8 sm:p-12 text-center space-y-3 shadow-xs">
           <Image className="w-12 h-12 text-gray-300 mx-auto" />
           <h3 className="text-base font-bold text-gray-800">No Gallery Items Found</h3>
           <p className="text-xs text-gray-500 max-w-sm mx-auto">
@@ -97,7 +97,7 @@ export const ParentGalleryView: React.FC<ParentGalleryViewProps> = ({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
           {filteredMedia.map((item) => {
             const isVideo = item.mediaType === 'VIDEO';
 
@@ -129,7 +129,7 @@ export const ParentGalleryView: React.FC<ParentGalleryViewProps> = ({
                 </div>
 
                 {/* Bottom Caption Overlay */}
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2.5 sm:p-3 text-white opacity-0 group-hover:opacity-100 transition-opacity">
                   <p className="text-xs font-bold truncate">
                     {item.caption || item.fileName}
                   </p>
@@ -142,14 +142,14 @@ export const ParentGalleryView: React.FC<ParentGalleryViewProps> = ({
 
       {/* Lightbox Preview Modal */}
       {previewMedia && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
           <div className="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center">
             <button
               type="button"
               onClick={() => setPreviewMedia(null)}
-              className="absolute -top-12 right-0 p-2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-all cursor-pointer"
+              className="absolute -top-10 sm:-top-12 right-0 p-2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-all cursor-pointer"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
 
             <div className="rounded-2xl overflow-hidden bg-black max-h-[75vh] flex items-center justify-center">

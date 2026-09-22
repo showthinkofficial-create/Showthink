@@ -1,16 +1,19 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { initializeFirestore, getFirestore, doc, getDoc } from 'firebase/firestore';
+import { initializeFirestore, getFirestore, doc, getDoc, getDocFromServer } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firestore with robust long-polling auto-detection for web/iframe environments
+// Initialize Firestore with forced long-polling for web/iframe environments.
+// In restrictive iframes and proxy networks, WebSockets or persistent streaming fail with
+// "Connection failed 1 times. Most recent error: FirebaseError: [code=unavailable]" before auto-detecting.
+// Forcing long polling avoids this initial connection failure completely.
 export const db = initializeFirestore(
   app,
   {
-    experimentalAutoDetectLongPolling: true,
+    experimentalForceLongPolling: true,
   },
   firebaseConfig.firestoreDatabaseId
 );
@@ -87,13 +90,16 @@ export function sanitizeFirestorePayload<T extends Record<string, any>>(data: T)
   return result;
 }
 
-// Background soft connection verification that doesn't trigger unhandled unavailable errors
-setTimeout(async () => {
+// Validate connection to Firestore on initial boot as mandated by the Firebase skill
+async function testConnection() {
   try {
-    await getDoc(doc(db, 'test', 'connection'));
+    await getDocFromServer(doc(db, 'test', 'connection'));
   } catch (error) {
-    // Gracefully handled for offline/intermittent network
+    if (error instanceof Error && (error.message.includes('the client is offline') || error.message.includes('unavailable'))) {
+      console.warn('Firestore operating in resilient offline/polling mode.');
+    }
   }
-}, 1000);
+}
+testConnection();
 
 

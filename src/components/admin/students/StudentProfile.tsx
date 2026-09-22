@@ -8,7 +8,9 @@ import {
   Phone,
   Building,
   ShieldCheck,
-  ShieldAlert
+  ShieldAlert,
+  KeyRound,
+  ExternalLink
 } from 'lucide-react';
 import { Student } from '../../../types/student';
 
@@ -17,6 +19,7 @@ interface StudentProfileProps {
   onEdit: () => void;
   onDisable: () => void;
   onBack: () => void;
+  onManagePortalAccess?: () => void;
 }
 
 export default function StudentProfile({
@@ -24,8 +27,10 @@ export default function StudentProfile({
   onEdit,
   onDisable,
   onBack,
+  onManagePortalAccess,
 }: StudentProfileProps) {
   const isActive = student.status === 'ACTIVE';
+  const hasPortalAccess = Boolean(student.authUid && student.authUid.trim() !== '');
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 font-sans">
@@ -229,6 +234,59 @@ export default function StudentProfile({
                 <span className="font-mono text-gray-600">{new Date(student.updatedAt).toLocaleDateString()}</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Section 4: Student & Parent Portal Login Access */}
+        <div className="bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xs space-y-4 md:col-span-2">
+          <div className="border-b border-gray-100 pb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-[#001c46]">
+              <KeyRound className="w-4 h-4 text-[#FFC907]" />
+              <h3 className="text-sm font-black uppercase tracking-wider">Portal Login & Parent Access</h3>
+            </div>
+            {hasPortalAccess ? (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Portal Account Active</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-700 border border-amber-200/80">
+                <ShieldAlert className="w-3.5 h-3.5" />
+                <span>No Portal Account Linked</span>
+              </span>
+            )}
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-gray-50/80 border border-gray-100">
+            <div className="space-y-1">
+              <h4 className="text-xs font-bold text-gray-900">
+                {hasPortalAccess
+                  ? 'This student is linked to an active parent/student portal login.'
+                  : 'Grant online portal login access to student or parents.'}
+              </h4>
+              <p className="text-[11px] text-gray-500 leading-relaxed">
+                {hasPortalAccess
+                  ? 'The linked guardian can log in to view real-time attendance, test marks, daily homework, notices, and payment receipts.'
+                  : 'Create a secured credential via Admin Panel → Portal Users to allow parents to track attendance, exams, fees, and homework.'}
+              </p>
+              {hasPortalAccess && student.authUid && (
+                <p className="text-[10px] font-mono text-gray-400 mt-1">
+                  Auth UID: <span className="text-gray-600">{student.authUid}</span>
+                </p>
+              )}
+            </div>
+
+            {onManagePortalAccess && (
+              <button
+                type="button"
+                onClick={onManagePortalAccess}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#001c46] hover:bg-[#002d6b] text-[#FFC907] text-xs font-extrabold transition-all shadow-xs active:scale-95 shrink-0 cursor-pointer"
+              >
+                <KeyRound className="w-4 h-4" />
+                <span>{hasPortalAccess ? 'Manage Portal Access' : 'Create Portal Access'}</span>
+                <ExternalLink className="w-3 h-3 text-white/60 ml-0.5" />
+              </button>
+            )}
           </div>
         </div>
 

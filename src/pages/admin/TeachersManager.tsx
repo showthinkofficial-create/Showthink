@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, UserCheck, AlertCircle, RefreshCw, Inbox, ShieldAlert } from 'lucide-react';
+import { Plus, UserCheck, AlertCircle, RefreshCw, Inbox, ShieldAlert, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Teacher, TeacherFilterOptions, TeacherFormData } from '../../types/teacher';
 import { teacherService } from '../../services/teacherService';
@@ -10,7 +10,7 @@ import TeacherTable from '../../components/admin/teachers/TeacherTable';
 import TeacherCard from '../../components/admin/teachers/TeacherCard';
 import TeacherForm from '../../components/admin/teachers/TeacherForm';
 import TeacherProfile from '../../components/admin/teachers/TeacherProfile';
-import TeacherConfirmDialog from '../../components/admin/teachers/TeacherConfirmDialog';
+import TeacherConfirmDialog, { DialogActionType } from '../../components/admin/teachers/TeacherConfirmDialog';
 
 interface TeachersManagerProps {
   currentPath: string;
@@ -20,11 +20,12 @@ interface TeachersManagerProps {
 const PAGE_SIZE = 15;
 
 export default function TeachersManager({ currentPath, onNavigate }: TeachersManagerProps) {
-  const { userProfile } = useAuth();
+  const { userProfile, currentUser } = useAuth();
 
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Filters & Search State
   const [filters, setFilters] = useState<TeacherFilterOptions>({
@@ -37,12 +38,21 @@ export default function TeachersManager({ currentPath, onNavigate }: TeachersMan
   // Pagination State
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // Disable Dialog State
-  const [disableTarget, setDisableTarget] = useState<Teacher | null>(null);
-  const [isDisabling, setIsDisabling] = useState<boolean>(false);
+  // Action Dialog State (disable, enable, reset-password, delete)
+  const [dialogTarget, setDialogTarget] = useState<Teacher | null>(null);
+  const [dialogAction, setDialogAction] = useState<DialogActionType>('disable');
+  const [isActionLoading, setIsActionLoading] = useState<boolean>(false);
 
   // Access check: Only SUPER_ADMIN and ADMIN
   const isAuthorized = userProfile?.role === 'SUPER_ADMIN' || userProfile?.role === 'ADMIN';
+
+  // Clear feedback message automatically after 6 seconds
+  useEffect(() => {
+    if (feedback) {
+      const timer = setTimeout(() => setFeedback(null), 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [feedback]);
 
   // Parse path parameters (e.g. /admin/teachers, /admin/teachers/add, /admin/teachers/:uid, /admin/teachers/:uid/edit)
   const viewMode = useMemo(() => {
@@ -160,34 +170,115 @@ export default function TeachersManager({ currentPath, onNavigate }: TeachersMan
   };
 
   const handleAddSubmit = async (formData: TeacherFormData) => {
-    const created = await teacherService.addTeacher(formData);
+    const created = await teacherService.addTeacher(
+      formData,
+      currentUser?.uid,
+      currentUser?.email || undefined
+    );
     await fetchTeachers();
+    setFeedback({
+      type: 'success',
+      text: `Teacher ${created.name} (${created.teacherId}) registered successfully. An account setup email was dispatched.`,
+    });
     onNavigate(`/admin/teachers/${created.uid}`);
   };
 
   const handleEditSubmit = async (formData: TeacherFormData) => {
     if (!activeUid) return;
-    await teacherService.updateTeacher(activeUid, formData);
+    await teacherService.updateTeacher(
+      activeUid,
+      formData,
+      currentUser?.uid
+    );
     await fetchTeachers();
+    setFeedback({
+      type: 'success',
+      text: `Teacher record for ${formData.name} updated successfully.`,
+    });
     onNavigate(`/admin/teachers/${activeUid}`);
   };
 
-  const handleConfirmDisable = async () => {
-    if (!disableTarget) return;
-    setIsDisabling(true);
+  // Action open handlers
+  const handleToggleStatus = (teacher: Teacher) => {
+    setDialogAction(teacher.status === 'ACTIVE' ? 'disable' : 'enable');
+    setDialogTarget(teacher);
+  };
+
+  const handleResetPassword = (teacher: Teacher) => {
+    setDialogAction('reset-password');
+    setDialogTarget(teacher);
+  };
+
+  const handleDelete = (teacher: Teacher) => {
+    setDialogAction('delete');
+    setDialogTarget(teacher);
+  };
+
+  const handleConfirmAction = async () => {
+    if (!dialogTarget) return;
+    setIsActionLoading(true);
+
     try {
-      await teacherService.disableTeacher(disableTarget.uid);
+      if (dialogAction === 'disable') {
+        await teacherService.disableTeacher(
+          dialogTarget.uid,
+          currentUser?.uid,
+          currentUser?.email || undefined
+        );
+        setFeedback({
+          type: 'success',
+          text: `Account for ${dialogTarget.name} has been disabled.`,
+        });
+      } else if (dialogAction === 'enable') {
+        await teacherService.enableTeacher(
+          dialogTarget.uid,
+          currentUser?.uid,
+          currentUser?.email || undefined
+        );
+        setFeedback({
+          type: 'success',
+          text: `Account for ${dialogTarget.name} has been activated.`,
+        });
+      } else if (dialogAction === 'reset-password') {
+        const result = await teacherService.resetPassword(
+          dialogTarget.uid,
+          dialogTarget.email,
+          currentUser?.uid,
+          currentUser?.email || undefined
+        );
+        setFeedback({
+          type: 'success',
+          text: result.message || `Password reset link dispatched to ${dialogTarget.email}.`,
+        });
+      } else if (dialogAction === 'delete') {
+        await teacherService.softDeleteTeacher(
+          dialogTarget.uid,
+          currentUser?.uid,
+          currentUser?.email || undefined
+        );
+        setFeedback({
+          type: 'success',
+          text: `Teacher record for ${dialogTarget.name} was successfully deactivated.`,
+        });
+        if (viewMode === 'profile' || viewMode === 'edit') {
+          onNavigate('/admin/teachers');
+        }
+      }
+
       await fetchTeachers();
-      setDisableTarget(null);
+      setDialogTarget(null);
     } catch (err: any) {
-      console.error('Failed to disable teacher:', err);
-      alert(err.message || 'Failed to disable teacher.');
+      console.error(`Failed to execute ${dialogAction}:`, err);
+      setFeedback({
+        type: 'error',
+        text: err.message || `Failed to perform action: ${dialogAction}`,
+      });
     } finally {
-      setIsDisabling(false);
+      setIsActionLoading(false);
     }
   };
 
-  // Check 1: Access Denied for non-admin roles (TEACHER or STUDENT)
+  // Check 1: Access Denied for non-admin roles
   if (!isAuthorized) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-6 bg-white rounded-3xl border border-gray-200/80 shadow-xs max-w-lg mx-auto space-y-4">
@@ -286,12 +377,42 @@ export default function TeachersManager({ currentPath, onNavigate }: TeachersMan
     }
 
     return (
-      <TeacherProfile
-        teacher={activeTeacher}
-        onBack={() => onNavigate('/admin/teachers')}
-        onEdit={() => onNavigate(`/admin/teachers/${activeTeacher.uid}/edit`)}
-        onDisable={() => setDisableTarget(activeTeacher)}
-      />
+      <>
+        {feedback && (
+          <div
+            className={`mb-4 p-4 rounded-2xl border text-xs font-medium flex items-center gap-2.5 ${
+              feedback.type === 'success'
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                : 'bg-rose-50 border-rose-200 text-rose-800'
+            }`}
+          >
+            {feedback.type === 'success' ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            ) : (
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            )}
+            <span>{feedback.text}</span>
+          </div>
+        )}
+
+        <TeacherProfile
+          teacher={activeTeacher}
+          onBack={() => onNavigate('/admin/teachers')}
+          onEdit={() => onNavigate(`/admin/teachers/${activeTeacher.uid}/edit`)}
+          onToggleStatus={() => handleToggleStatus(activeTeacher)}
+          onResetPassword={() => handleResetPassword(activeTeacher)}
+          onDelete={() => handleDelete(activeTeacher)}
+        />
+
+        <TeacherConfirmDialog
+          isOpen={Boolean(dialogTarget)}
+          teacher={dialogTarget}
+          actionType={dialogAction}
+          onConfirm={handleConfirmAction}
+          onCancel={() => setDialogTarget(null)}
+          isLoading={isActionLoading}
+        />
+      </>
     );
   }
 
@@ -309,7 +430,7 @@ export default function TeachersManager({ currentPath, onNavigate }: TeachersMan
               Teacher Management
             </h1>
             <p className="text-xs text-gray-500">
-              Manage faculty profiles, subject assignments, and class allocations
+              Manage faculty profiles, credentials, class allocations, and portal access
             </p>
           </div>
         </div>
@@ -322,6 +443,24 @@ export default function TeachersManager({ currentPath, onNavigate }: TeachersMan
           <span>Add Teacher</span>
         </button>
       </div>
+
+      {/* Global Feedback Banner */}
+      {feedback && (
+        <div
+          className={`p-4 rounded-2xl border text-xs font-medium flex items-center gap-2.5 animate-in fade-in duration-200 ${
+            feedback.type === 'success'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+              : 'bg-rose-50 border-rose-200 text-rose-800'
+          }`}
+        >
+          {feedback.type === 'success' ? (
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          ) : (
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          )}
+          <span>{feedback.text}</span>
+        </div>
+      )}
 
       {/* Search & Filter Controls */}
       <div className="bg-white rounded-2xl border border-gray-200/90 p-4 shadow-2xs space-y-3">
@@ -411,7 +550,9 @@ export default function TeachersManager({ currentPath, onNavigate }: TeachersMan
               teachers={paginatedTeachers}
               onView={(t) => onNavigate(`/admin/teachers/${t.uid}`)}
               onEdit={(t) => onNavigate(`/admin/teachers/${t.uid}/edit`)}
-              onDisable={(t) => setDisableTarget(t)}
+              onToggleStatus={handleToggleStatus}
+              onResetPassword={handleResetPassword}
+              onDelete={handleDelete}
             />
           </div>
 
@@ -423,7 +564,9 @@ export default function TeachersManager({ currentPath, onNavigate }: TeachersMan
                 teacher={t}
                 onView={(teacher) => onNavigate(`/admin/teachers/${teacher.uid}`)}
                 onEdit={(teacher) => onNavigate(`/admin/teachers/${teacher.uid}/edit`)}
-                onDisable={(teacher) => setDisableTarget(teacher)}
+                onToggleStatus={handleToggleStatus}
+                onResetPassword={handleResetPassword}
+                onDelete={handleDelete}
               />
             ))}
           </div>
@@ -455,14 +598,16 @@ export default function TeachersManager({ currentPath, onNavigate }: TeachersMan
         </div>
       )}
 
-      {/* Confirmation Dialog for Disabling Teacher */}
+      {/* Confirmation Dialog for Teacher Actions */}
       <TeacherConfirmDialog
-        isOpen={Boolean(disableTarget)}
-        teacher={disableTarget}
-        onConfirm={handleConfirmDisable}
-        onCancel={() => setDisableTarget(null)}
-        isLoading={isDisabling}
+        isOpen={Boolean(dialogTarget)}
+        teacher={dialogTarget}
+        actionType={dialogAction}
+        onConfirm={handleConfirmAction}
+        onCancel={() => setDialogTarget(null)}
+        isLoading={isActionLoading}
       />
     </div>
   );
 }
+

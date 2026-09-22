@@ -124,7 +124,7 @@ export const ParentAttendanceView: React.FC<ParentAttendanceViewProps> = ({
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Top Header & View Toggle */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-3xl border border-gray-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
             <CalendarCheck className="w-5 h-5 text-[#001c46]" />
@@ -135,7 +135,7 @@ export const ParentAttendanceView: React.FC<ParentAttendanceViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
           {/* Calendar vs Table view toggle */}
           <div className="inline-flex p-1 bg-gray-100 rounded-2xl border border-gray-200 text-xs font-bold">
             <button
@@ -188,41 +188,41 @@ export const ParentAttendanceView: React.FC<ParentAttendanceViewProps> = ({
       )}
 
       {/* Overall Summary Stats Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
         {/* Total Working Days */}
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs text-center space-y-1">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-gray-200 shadow-xs text-center space-y-1">
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Total Days</span>
-          <span className="text-xl font-black text-gray-900">{totalDays}</span>
+          <span className="text-lg sm:text-xl font-black text-gray-900">{totalDays}</span>
         </div>
 
         {/* Present Days */}
-        <div className="bg-white p-4 rounded-2xl border border-emerald-200 bg-emerald-50/20 shadow-xs text-center space-y-1">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-emerald-200 bg-emerald-50/20 shadow-xs text-center space-y-1">
           <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">Present</span>
-          <span className="text-xl font-black text-emerald-700">{presentDays}</span>
+          <span className="text-lg sm:text-xl font-black text-emerald-700">{presentDays}</span>
         </div>
 
         {/* Absent Days */}
-        <div className="bg-white p-4 rounded-2xl border border-red-200 bg-red-50/20 shadow-xs text-center space-y-1">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-red-200 bg-red-50/20 shadow-xs text-center space-y-1">
           <span className="text-[10px] font-bold text-red-700 uppercase tracking-wider block">Absent</span>
-          <span className="text-xl font-black text-red-700">{absentDays}</span>
+          <span className="text-lg sm:text-xl font-black text-red-700">{absentDays}</span>
         </div>
 
         {/* Leave Days */}
-        <div className="bg-white p-4 rounded-2xl border border-amber-200 bg-amber-50/20 shadow-xs text-center space-y-1">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-amber-200 bg-amber-50/20 shadow-xs text-center space-y-1">
           <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Leave</span>
-          <span className="text-xl font-black text-amber-700">{leaveDays}</span>
+          <span className="text-lg sm:text-xl font-black text-amber-700">{leaveDays}</span>
         </div>
 
         {/* Late Days */}
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs text-center space-y-1">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-gray-200 shadow-xs text-center space-y-1">
           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Late</span>
-          <span className="text-xl font-black text-gray-700">{lateDays}</span>
+          <span className="text-lg sm:text-xl font-black text-gray-700">{lateDays}</span>
         </div>
 
         {/* Attendance % */}
-        <div className="bg-white p-4 rounded-2xl border border-[#001c46] bg-blue-50/30 shadow-xs text-center space-y-1">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-[#001c46] bg-blue-50/30 shadow-xs text-center space-y-1">
           <span className="text-[10px] font-bold text-[#001c46] uppercase tracking-wider block">Percentage</span>
-          <span className="text-xl font-black text-[#001c46]">{attendancePercentage}%</span>
+          <span className="text-lg sm:text-xl font-black text-[#001c46]">{attendancePercentage}%</span>
         </div>
       </div>
 
@@ -244,9 +244,9 @@ export const ParentAttendanceView: React.FC<ParentAttendanceViewProps> = ({
 
       {/* Table View Mode */}
       {viewMode === 'TABLE' && (
-        <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-xs space-y-5">
+        <div className="bg-white p-4 sm:p-6 rounded-3xl border border-gray-200 shadow-xs space-y-4 sm:space-y-5">
           {/* Controls Row */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
               <Calendar className="w-5 h-5 text-[#001c46]" />
               <h3 className="text-sm font-black text-[#001c46] uppercase tracking-wider">
@@ -254,7 +254,7 @@ export const ParentAttendanceView: React.FC<ParentAttendanceViewProps> = ({
               </h3>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
               {/* Month Input */}
               <div className="flex items-center gap-2">
                 <label htmlFor="month-select" className="text-xs font-bold text-gray-500">
@@ -289,11 +289,11 @@ export const ParentAttendanceView: React.FC<ParentAttendanceViewProps> = ({
           </div>
 
           {/* Selected Month Mini Summary Banner */}
-          <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex flex-wrap items-center justify-between gap-4 text-xs">
+          <div className="bg-gray-50 p-3.5 sm:p-4 rounded-2xl border border-gray-100 flex flex-wrap items-center justify-between gap-3 sm:gap-4 text-xs">
             <span className="font-bold text-gray-700">
               Records for <span className="text-[#001c46]">{selectedMonth}</span>:
             </span>
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
               <span className="text-emerald-700 font-bold">Present: {monthlyPresent}</span>
               <span className="text-red-700 font-bold">Absent: {monthlyAbsent}</span>
               <span className="text-amber-700 font-bold">Leave: {monthlyLeave}</span>
@@ -312,7 +312,7 @@ export const ParentAttendanceView: React.FC<ParentAttendanceViewProps> = ({
             </div>
           ) : (
             <div className="overflow-x-auto rounded-2xl border border-gray-100">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs min-w-[620px]">
                 <thead className="bg-[#001c46] text-white uppercase text-[10px] font-bold">
                   <tr>
                     <th className="px-4 py-3">Date</th>

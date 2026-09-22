@@ -110,6 +110,57 @@ export const TeacherDashboardView: React.FC<TeacherDashboardViewProps> = ({
         </div>
       </div>
 
+      {/* Quick Access Action Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <button
+          type="button"
+          onClick={() => onSelectTab('students')}
+          className="p-4 bg-white hover:bg-blue-50/50 rounded-2xl border border-gray-200 hover:border-blue-300 shadow-2xs text-left transition-all group"
+        >
+          <div className="w-10 h-10 bg-blue-100 text-blue-800 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+            <GraduationCap className="w-5 h-5" />
+          </div>
+          <h4 className="font-black text-xs text-gray-900">My Students</h4>
+          <p className="text-[11px] text-gray-500 font-medium">View enrolled roster</p>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onSelectTab('attendance')}
+          className="p-4 bg-white hover:bg-emerald-50/50 rounded-2xl border border-gray-200 hover:border-emerald-300 shadow-2xs text-left transition-all group"
+        >
+          <div className="w-10 h-10 bg-emerald-100 text-emerald-800 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+            <CheckSquare className="w-5 h-5" />
+          </div>
+          <h4 className="font-black text-xs text-gray-900">Mark Attendance</h4>
+          <p className="text-[11px] text-gray-500 font-medium">Daily rolls & leave</p>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onSelectTab('results')}
+          className="p-4 bg-white hover:bg-amber-50/50 rounded-2xl border border-gray-200 hover:border-amber-300 shadow-2xs text-left transition-all group"
+        >
+          <div className="w-10 h-10 bg-amber-100 text-amber-800 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+            <Award className="w-5 h-5" />
+          </div>
+          <h4 className="font-black text-xs text-gray-900">Marks / Results</h4>
+          <p className="text-[11px] text-gray-500 font-medium">Enter evaluations</p>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onSelectTab('timetable')}
+          className="p-4 bg-white hover:bg-purple-50/50 rounded-2xl border border-gray-200 hover:border-purple-300 shadow-2xs text-left transition-all group"
+        >
+          <div className="w-10 h-10 bg-purple-100 text-purple-800 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+            <Calendar className="w-5 h-5" />
+          </div>
+          <h4 className="font-black text-xs text-gray-900">My Timetable</h4>
+          <p className="text-[11px] text-gray-500 font-medium">Weekly schedule</p>
+        </button>
+      </div>
+
       {/* Grid Row 1: Summary Badges for Assigned Classes & Subjects */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         

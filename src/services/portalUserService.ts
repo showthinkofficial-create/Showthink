@@ -22,7 +22,11 @@ import {
   PortalUser, 
   PortalStudentLink, 
   PortalUserWithStudents, 
-  CreatePortalUserFormData 
+  CreatePortalUserFormData,
+  UnifiedPortalUser,
+  PortalUserType,
+  CreateTeacherPortalUserFormData,
+  CreateParentStudentPortalUserFormData
 } from '../types/portalUser';
 import { Student } from '../types/student';
 import { auditService } from './auditService';
@@ -30,6 +34,7 @@ import { auditService } from './auditService';
 const USERS_COLLECTION = 'users';
 const LINKS_COLLECTION = 'portalStudentLinks';
 const STUDENTS_COLLECTION = 'students';
+const TEACHERS_COLLECTION = 'teachers';
 
 export const portalUserService = {
   /**
@@ -687,4 +692,389 @@ export const portalUserService = {
       return [];
     }
   },
+
+  /**
+   * Get all active students for selector (including linked status)
+   */
+  async getAllActiveStudents(): Promise<Student[]> {
+    try {
+      const q = query(
+        collection(db, STUDENTS_COLLECTION),
+        where('status', '==', 'ACTIVE')
+      );
+      const snap = await getDocs(q);
+      const students: Student[] = [];
+      snap.forEach((d) => {
+        students.push(d.data() as Student);
+      });
+      return students.sort((a, b) => a.name.localeCompare(b.name));
+    } catch (err) {
+      console.warn('Warning fetching active students:', err);
+      return [];
+    }
+  },
+
+  /**
+   * Centralized: Fetch all Portal Users (Teachers and Parent/Student users)
+   */
+  async getUnifiedPortalUsers(): Promise<UnifiedPortalUser[]> {
+    try {
+      // 1. Fetch all users
+      const usersSnap = await getDocs(collection(db, USERS_COLLECTION));
+      const usersMap = new Map<string, any>();
+      usersSnap.forEach((docSnap) => {
+        usersMap.set(docSnap.id, { id: docSnap.id, ...docSnap.data() });
+      });
+
+      // 2. Fetch all teachers
+      const teachersSnap = await getDocs(collection(db, TEACHERS_COLLECTION));
+      const teachersMap = new Map<string, any>();
+      const teachersByEmail = new Map<string, any>();
+      teachersSnap.forEach((docSnap) => {
+        const data = docSnap.data();
+        teachersMap.set(docSnap.id, { id: docSnap.id, ...data });
+        if (data.email) {
+          teachersByEmail.set(data.email.toLowerCase().trim(), { id: docSnap.id, ...data });
+        }
+      });
+
+      // 3. Fetch all students for student name lookup
+      const studentsSnap = await getDocs(collection(db, STUDENTS_COLLECTION));
+      const studentsById = new Map<string, Student>();
+      const studentsByUid = new Map<string, Student>();
+      studentsSnap.forEach((docSnap) => {
+        const s = docSnap.data() as Student;
+        studentsById.set(s.studentId, s);
+        studentsByUid.set(s.uid, s);
+      });
+
+      // 4. Fetch all portal student links
+      const linksSnap = await getDocs(collection(db, LINKS_COLLECTION));
+      const linksByUser = new Map<string, PortalStudentLink[]>();
+      linksSnap.forEach((docSnap) => {
+        const link = docSnap.data() as PortalStudentLink;
+        if (link.portalUserUid) {
+          const arr = linksByUser.get(link.portalUserUid) || [];
+          arr.push(link);
+          linksByUser.set(link.portalUserUid, arr);
+        }
+      });
+
+      const unifiedUsers: UnifiedPortalUser[] = [];
+      const processedUids = new Set<string>();
+
+      // A. Process all users from `users` collection
+      usersMap.forEach((uData, uid) => {
+        const role = uData.role;
+        const isTeacher = role === 'TEACHER' || uData.userType === 'TEACHER' || teachersMap.has(uid) || (uData.email && teachersByEmail.has(uData.email.toLowerCase().trim()));
+        const isParentStudent = role === 'PORTAL_USER' || role === 'STUDENT' || role === 'PARENT' || uData.userType === 'PARENT_STUDENT' || (Array.isArray(uData.linkedStudents) && uData.linkedStudents.length > 0);
+
+        if (isTeacher) {
+          processedUids.add(uid);
+          const teacherProfile = teachersMap.get(uid) || (uData.email ? teachersByEmail.get(uData.email.toLowerCase().trim()) : null);
+          const teacherId = teacherProfile?.teacherId || uData.teacherId || '';
+
+          unifiedUsers.push({
+            uid,
+            email: uData.email || teacherProfile?.email || '',
+            displayName: uData.displayName || teacherProfile?.name || 'Faculty Member',
+            userType: 'TEACHER',
+            role: 'TEACHER',
+            status: uData.status || teacherProfile?.status || 'ACTIVE',
+            loginEnabled: uData.loginEnabled !== undefined ? Boolean(uData.loginEnabled) : (uData.status !== 'DISABLED'),
+            createdAt: uData.createdAt || teacherProfile?.createdAt || new Date().toISOString(),
+            updatedAt: uData.updatedAt || teacherProfile?.updatedAt || new Date().toISOString(),
+            teacherId: teacherId || undefined,
+            phone: teacherProfile?.phone || uData.phone || undefined,
+            alternatePhone: teacherProfile?.alternatePhone || undefined,
+            subjects: teacherProfile?.subjects || [],
+            assignedClasses: teacherProfile?.assignedClasses || [],
+            assignedSections: teacherProfile?.assignedSections || [],
+            qualification: teacherProfile?.qualification || undefined,
+            joiningDate: teacherProfile?.joiningDate || undefined,
+            students: [],
+          });
+        } else if (isParentStudent) {
+          processedUids.add(uid);
+          // Resolve linked students
+          const userLinks = linksByUser.get(uid) || [];
+          const linkedStudentUids: string[] = Array.isArray(uData.linkedStudents) ? [...uData.linkedStudents] : [];
+          const linkedStudentIds: string[] = Array.isArray(uData.linkedStudentIds) ? [...uData.linkedStudentIds] : [];
+
+          // Also merge links from `portalStudentLinks`
+          userLinks.forEach((l) => {
+            if (l.studentUid && !linkedStudentUids.includes(l.studentUid)) linkedStudentUids.push(l.studentUid);
+            if (l.studentId && !linkedStudentIds.includes(l.studentId)) linkedStudentIds.push(l.studentId);
+          });
+
+          const resolvedStudents: Student[] = [];
+          linkedStudentUids.forEach((sUid) => {
+            const s = studentsByUid.get(sUid);
+            if (s && !resolvedStudents.some((st) => st.uid === s.uid)) resolvedStudents.push(s);
+          });
+          linkedStudentIds.forEach((sId) => {
+            const s = studentsById.get(sId);
+            if (s && !resolvedStudents.some((st) => st.studentId === s.studentId)) resolvedStudents.push(s);
+          });
+
+          unifiedUsers.push({
+            uid,
+            email: uData.email || '',
+            displayName: uData.displayName || 'Parent / Guardian',
+            userType: 'PARENT_STUDENT',
+            role: (role as any) || 'PORTAL_USER',
+            status: uData.status || 'ACTIVE',
+            loginEnabled: uData.loginEnabled !== undefined ? Boolean(uData.loginEnabled) : (uData.status !== 'DISABLED'),
+            createdAt: uData.createdAt || new Date().toISOString(),
+            updatedAt: uData.updatedAt || new Date().toISOString(),
+            phone: uData.phone || undefined,
+            linkedStudents: linkedStudentUids,
+            linkedStudentIds: linkedStudentIds,
+            students: resolvedStudents,
+            primaryStudent: resolvedStudents[0] || null,
+          });
+        }
+      });
+
+      // B. Include any teachers from `teachers` collection that didn't have a user doc yet
+      teachersMap.forEach((tData, tUid) => {
+        if (!processedUids.has(tUid) && (!tData.email || !usersMap.has(tUid))) {
+          processedUids.add(tUid);
+          unifiedUsers.push({
+            uid: tUid,
+            email: tData.email || '',
+            displayName: tData.name || 'Faculty Member',
+            userType: 'TEACHER',
+            role: 'TEACHER',
+            status: tData.status || 'ACTIVE',
+            loginEnabled: tData.status !== 'DISABLED',
+            createdAt: tData.createdAt || new Date().toISOString(),
+            updatedAt: tData.updatedAt || new Date().toISOString(),
+            teacherId: tData.teacherId,
+            phone: tData.phone || undefined,
+            alternatePhone: tData.alternatePhone || undefined,
+            subjects: tData.subjects || [],
+            assignedClasses: tData.assignedClasses || [],
+            assignedSections: tData.assignedSections || [],
+            qualification: tData.qualification || undefined,
+            joiningDate: tData.joiningDate || undefined,
+            students: [],
+          });
+        }
+      });
+
+      // Sort by creation date descending
+      return unifiedUsers.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } catch (err) {
+      console.warn('Error fetching unified portal users:', err);
+      return [];
+    }
+  },
+
+  /**
+   * Auto-generate the next sequential Teacher ID
+   */
+  async generateNextTeacherId(): Promise<string> {
+    try {
+      const year = new Date().getFullYear();
+      const snap = await getDocs(collection(db, TEACHERS_COLLECTION));
+      let maxNum = 0;
+      snap.forEach((d) => {
+        const tId = d.data().teacherId || '';
+        const match = tId.match(/GP-T-\d{4}-(\d+)/i);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxNum) maxNum = num;
+        }
+      });
+      const nextNum = String(maxNum + 1).padStart(3, '0');
+      return `GP-T-${year}-${nextNum}`;
+    } catch {
+      return `GP-T-${new Date().getFullYear()}-001`;
+    }
+  },
+
+  /**
+   * Create a Teacher User Account (Admin action)
+   */
+  async createTeacherPortalUser(
+    formData: CreateTeacherPortalUserFormData,
+    actorUid: string = 'admin',
+    actorEmail: string = 'admin@gpacademy.in'
+  ): Promise<{ uid: string; email: string; message: string }> {
+    const res = await fetch('/api/admin/teachers/create-account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...formData,
+        actorUid,
+        actorEmail,
+      }),
+    });
+
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.error || 'Failed to create Teacher account.');
+    }
+    return {
+      uid: json.teacher?.uid || '',
+      email: json.teacher?.email || formData.email,
+      message: json.message || 'Teacher account created successfully.',
+    };
+  },
+
+  /**
+   * Create a Parent/Student User Account (Admin action)
+   */
+  async createParentStudentPortalUser(
+    formData: CreateParentStudentPortalUserFormData,
+    actorUid: string = 'admin',
+    actorEmail: string = 'admin@gpacademy.in'
+  ): Promise<{ uid: string; email: string; message: string }> {
+    const res = await fetch('/api/admin/portal-users/create-parent-student', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...formData,
+        actorUid,
+        actorEmail,
+      }),
+    });
+
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.error || 'Failed to create Parent/Student account.');
+    }
+    return {
+      uid: json.user?.uid || '',
+      email: json.user?.email || formData.email,
+      message: json.message || 'Parent/Student account created successfully.',
+    };
+  },
+
+  /**
+   * Toggle account status (Enable or Disable)
+   */
+  async toggleUnifiedUserStatus(
+    uid: string,
+    userType: PortalUserType,
+    status: 'ACTIVE' | 'DISABLED',
+    actorUid: string = 'admin',
+    actorEmail: string = 'admin@gpacademy.in'
+  ): Promise<void> {
+    const res = await fetch('/api/admin/portal-users/toggle-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        uid,
+        userType,
+        status,
+        actorUid,
+        actorEmail,
+      }),
+    });
+
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.error || 'Failed to update account status.');
+    }
+  },
+
+  /**
+   * Send official Firebase Password Reset Email
+   */
+  async sendUnifiedPasswordReset(
+    email: string,
+    uid: string,
+    userType: PortalUserType,
+    actorUid: string = 'admin',
+    actorEmail: string = 'admin@gpacademy.in'
+  ): Promise<string> {
+    const res = await fetch('/api/admin/portal-users/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        uid,
+        userType,
+        actorUid,
+        actorEmail,
+      }),
+    });
+
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      // Client-side fallback if server endpoint had an issue
+      await sendPasswordResetEmail(auth, email.trim().toLowerCase());
+      return `Password reset email dispatched to ${email}.`;
+    }
+    return json.message || `Password reset email dispatched to ${email}.`;
+  },
+
+  /**
+   * Update Teacher Profile & Assignments
+   */
+  async updateTeacherAssignments(
+    data: {
+      uid: string;
+      teacherId?: string;
+      name: string;
+      phone: string;
+      alternatePhone?: string;
+      subjects: string[];
+      assignedClasses: string[];
+      assignedSections: string[];
+      qualification?: string;
+      status?: 'ACTIVE' | 'DISABLED';
+    },
+    actorUid: string = 'admin',
+    actorEmail: string = 'admin@gpacademy.in'
+  ): Promise<void> {
+    const res = await fetch('/api/admin/portal-users/update-teacher', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...data,
+        actorUid,
+        actorEmail,
+      }),
+    });
+
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.error || 'Failed to update teacher assignments.');
+    }
+  },
+
+  /**
+   * Update Parent/Student Profile & Linked Student
+   */
+  async updateParentStudent(
+    data: {
+      uid: string;
+      name: string;
+      phone?: string;
+      studentUid: string;
+      studentId: string;
+      status?: 'ACTIVE' | 'DISABLED';
+    },
+    actorUid: string = 'admin',
+    actorEmail: string = 'admin@gpacademy.in'
+  ): Promise<void> {
+    const res = await fetch('/api/admin/portal-users/update-parent-student', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...data,
+        actorUid,
+        actorEmail,
+      }),
+    });
+
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.error || 'Failed to update parent/student account.');
+    }
+  },
 };
+

@@ -153,6 +153,180 @@ export const resultService = {
   },
 
   /**
+   * Helper to calculate letter grade from percentage
+   */
+  calculateGrade(percentage: number): string {
+    if (percentage >= 90) return 'A+';
+    if (percentage >= 80) return 'A';
+    if (percentage >= 70) return 'B+';
+    if (percentage >= 60) return 'B';
+    if (percentage >= 50) return 'C';
+    if (percentage >= 33) return 'D';
+    return 'F';
+  },
+
+  /**
+   * Save or update marks entered by teacher for a class & subject
+   */
+  async saveSubjectMarksBatch(
+    entries: {
+      studentUid: string;
+      studentId: string;
+      studentName: string;
+      rollNumber?: string;
+      className: string;
+      section: string;
+      board?: string;
+      marksObtained: number;
+      remarks?: string;
+    }[],
+    metadata: {
+      examName: string;
+      academicSession: string;
+      subject: string;
+      maxMarks: number;
+      date: string;
+      teacherId?: string;
+      teacherUid?: string;
+      teacherName?: string;
+    }
+  ): Promise<void> {
+    const now = new Date().toISOString();
+    
+    // Fetch all existing results for this exam & session to minimize queries
+    const q = query(
+      collection(db, COLLECTION_NAME),
+      where('examName', '==', metadata.examName),
+      where('academicSession', '==', metadata.academicSession)
+    );
+    const existingSnap = await getDocs(q);
+    const existingMap = new Map<string, { id: string; data: ExamResult }>();
+    existingSnap.forEach((d) => {
+      const data = d.data() as ExamResult;
+      existingMap.set(data.studentUid || data.studentId, { id: d.id, data });
+    });
+
+    for (const entry of entries) {
+      const existing = existingMap.get(entry.studentUid) || existingMap.get(entry.studentId);
+
+      if (existing) {
+        // Update existing exam record with this subject
+        const currentSubjects: any[] = Array.isArray(existing.data.subjects)
+          ? [...existing.data.subjects]
+          : [];
+        
+        const subIndex = currentSubjects.findIndex(
+          (s) => (s.subject || s.subjectName || '').toLowerCase() === metadata.subject.toLowerCase()
+        );
+
+        const newSubItem = {
+          subject: metadata.subject,
+          subjectName: metadata.subject,
+          marksObtained: Number(entry.marksObtained),
+          maxMarks: Number(metadata.maxMarks),
+          grade: resultService.calculateGrade((Number(entry.marksObtained) / Number(metadata.maxMarks)) * 100),
+          remarks: entry.remarks || '',
+        };
+
+        if (subIndex >= 0) {
+          currentSubjects[subIndex] = newSubItem;
+        } else {
+          currentSubjects.push(newSubItem);
+        }
+
+        const totalObtained = currentSubjects.reduce((sum, s) => sum + Number(s.marksObtained || 0), 0);
+        const totalMax = currentSubjects.reduce((sum, s) => sum + Number(s.maxMarks || 100), 0);
+        const percentage = totalMax > 0 ? Math.round((totalObtained / totalMax) * 1000) / 10 : 0;
+        const status = percentage >= 33 ? 'PASSED' : 'FAILED';
+        const grade = resultService.calculateGrade(percentage);
+
+        await updateDoc(doc(db, COLLECTION_NAME, existing.id), {
+          subjects: currentSubjects,
+          totalObtained,
+          totalMarksObtained: totalObtained,
+          totalMax,
+          totalMaxMarks: totalMax,
+          percentage,
+          grade,
+          status,
+          resultStatus: status,
+          remarks: entry.remarks || existing.data.remarks || '',
+          date: metadata.date,
+          teacherId: metadata.teacherId || existing.data.teacherId || '',
+          teacherUid: metadata.teacherUid || existing.data.teacherUid || '',
+          teacherName: metadata.teacherName || existing.data.teacherName || '',
+          updatedAt: now,
+        });
+
+      } else {
+        // Create new exam record
+        const percentage = metadata.maxMarks > 0
+          ? Math.round((Number(entry.marksObtained) / Number(metadata.maxMarks)) * 1000) / 10
+          : 0;
+        const status = percentage >= 33 ? 'PASSED' : 'FAILED';
+        const grade = resultService.calculateGrade(percentage);
+
+        const newResultData = {
+          studentUid: entry.studentUid,
+          studentId: entry.studentId,
+          studentName: entry.studentName,
+          rollNumber: entry.rollNumber || '',
+          className: entry.className,
+          section: entry.section,
+          board: entry.board || 'CBSE',
+          examName: metadata.examName,
+          academicSession: metadata.academicSession,
+          subject: metadata.subject,
+          subjects: [
+            {
+              subject: metadata.subject,
+              subjectName: metadata.subject,
+              marksObtained: Number(entry.marksObtained),
+              maxMarks: Number(metadata.maxMarks),
+              grade,
+              remarks: entry.remarks || '',
+            },
+          ],
+          totalObtained: Number(entry.marksObtained),
+          totalMarksObtained: Number(entry.marksObtained),
+          totalMax: Number(metadata.maxMarks),
+          totalMaxMarks: Number(metadata.maxMarks),
+          percentage,
+          grade,
+          status,
+          resultStatus: status,
+          date: metadata.date,
+          teacherId: metadata.teacherId || '',
+          teacherUid: metadata.teacherUid || '',
+          teacherName: metadata.teacherName || '',
+          remarks: entry.remarks || '',
+          createdAt: now,
+          updatedAt: now,
+        };
+
+        await addDoc(collection(db, COLLECTION_NAME), newResultData);
+      }
+    }
+
+    if (metadata.teacherUid) {
+      await auditService.logAction({
+        actorUid: metadata.teacherUid,
+        actorRole: 'TEACHER',
+        action: 'RESULT_PUBLISHED',
+        targetType: 'RESULT',
+        targetName: `${metadata.examName} - ${metadata.subject} (${entries.length} students)`,
+        success: true,
+        metadata: {
+          examName: metadata.examName,
+          subject: metadata.subject,
+          studentCount: entries.length,
+          teacherId: metadata.teacherId,
+        },
+      });
+    }
+  },
+
+  /**
    * Compute stats for a list of ExamResult objects
    */
   computeResultStats(results: ExamResult[]): ResultSummaryStats {

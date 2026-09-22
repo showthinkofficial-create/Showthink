@@ -27,7 +27,7 @@ export const StudentResultsView: React.FC<StudentResultsViewProps> = ({ results 
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Title Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-3xl border border-gray-200 shadow-xs">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-[#001c46]">
             <Award className="w-6 h-6 text-[#FFC907]" />
@@ -38,14 +38,14 @@ export const StudentResultsView: React.FC<StudentResultsViewProps> = ({ results 
           </p>
         </div>
 
-        <div className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-xl text-xs font-black uppercase">
+        <div className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-xl text-xs font-black uppercase w-fit">
           {publishedResults.length} Published Marksheets
         </div>
       </div>
 
       {/* Results List */}
       {publishedResults.length === 0 ? (
-        <div className="bg-white p-12 rounded-3xl border border-gray-200 text-center space-y-3">
+        <div className="bg-white p-8 sm:p-12 rounded-3xl border border-gray-200 text-center space-y-3">
           <Award className="w-12 h-12 text-gray-300 mx-auto" />
           <h3 className="font-bold text-gray-800">No Published Results Found</h3>
           <p className="text-xs text-gray-500 max-w-md mx-auto">
@@ -53,13 +53,13 @@ export const StudentResultsView: React.FC<StudentResultsViewProps> = ({ results 
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {publishedResults.map((result) => {
             const isPassed = result.resultStatus === 'PASSED';
             return (
               <div
                 key={result.id}
-                className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm space-y-5 flex flex-col justify-between hover:border-[#001c46] transition-all"
+                className="bg-white p-4 sm:p-6 rounded-3xl border border-gray-200 shadow-sm space-y-5 flex flex-col justify-between hover:border-[#001c46] transition-all"
               >
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-3">
@@ -73,7 +73,7 @@ export const StudentResultsView: React.FC<StudentResultsViewProps> = ({ results 
                       </p>
                     </div>
 
-                    <div className={`px-3 py-1 rounded-xl text-xs font-black uppercase text-center ${
+                    <div className={`px-3 py-1 rounded-xl text-xs font-black uppercase text-center shrink-0 ${
                       isPassed ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
                     }`}>
                       {result.resultStatus}
@@ -81,25 +81,25 @@ export const StudentResultsView: React.FC<StudentResultsViewProps> = ({ results 
                   </div>
 
                   {/* Summary Metric Strip */}
-                  <div className="grid grid-cols-3 gap-2 bg-gray-50 p-3.5 rounded-2xl border border-gray-100 text-center">
+                  <div className="grid grid-cols-3 gap-2 bg-gray-50 p-3 sm:p-3.5 rounded-2xl border border-gray-100 text-center">
                     <div>
                       <span className="text-[10px] text-gray-400 font-bold uppercase block">Marks</span>
-                      <span className="font-black text-gray-900 text-sm">{result.totalMarksObtained} / {result.totalMaxMarks}</span>
+                      <span className="font-black text-gray-900 text-xs sm:text-sm">{result.totalMarksObtained} / {result.totalMaxMarks}</span>
                     </div>
                     <div>
                       <span className="text-[10px] text-gray-400 font-bold uppercase block">Percentage</span>
-                      <span className="font-black text-[#001c46] text-sm">{result.percentage}%</span>
+                      <span className="font-black text-[#001c46] text-xs sm:text-sm">{result.percentage}%</span>
                     </div>
                     <div>
                       <span className="text-[10px] text-gray-400 font-bold uppercase block">Grade</span>
-                      <span className="font-black text-purple-700 text-sm">{result.grade || '—'}</span>
+                      <span className="font-black text-purple-700 text-xs sm:text-sm">{result.grade || '—'}</span>
                     </div>
                   </div>
 
                   {/* Short Subjects Preview */}
                   <div className="text-xs space-y-1.5 pt-1">
                     <span className="text-[11px] font-bold text-gray-400 uppercase block">Subject Breakdown</span>
-                    <div className="grid grid-cols-2 gap-2 text-[11px]">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
                       {result.subjects.slice(0, 4).map((sub, idx) => (
                         <div key={idx} className="flex justify-between bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-100">
                           <span className="text-gray-600 font-medium truncate">{sub.subjectName}</span>
@@ -130,24 +130,24 @@ export const StudentResultsView: React.FC<StudentResultsViewProps> = ({ results 
 
       {/* Official Marksheet Modal */}
       {selectedResult && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-6 relative shadow-2xl my-8 animate-scaleIn">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-3xl w-full p-4 sm:p-8 space-y-4 sm:space-y-6 relative shadow-2xl my-4 sm:my-8 animate-scaleIn">
             <button
               onClick={() => setSelectedResult(null)}
-              className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full transition-all"
+              className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full transition-all"
             >
               <X className="w-5 h-5" />
             </button>
 
             {/* Printable Marksheet Container */}
-            <div id="printable-marksheet" className="space-y-6 border-4 border-[#001c46] p-6 sm:p-8 rounded-2xl bg-white relative">
+            <div id="printable-marksheet" className="space-y-6 border-2 sm:border-4 border-[#001c46] p-3.5 sm:p-8 rounded-2xl bg-white relative">
               {/* Marksheet Header */}
               <div className="text-center space-y-2 border-b-2 border-gray-200 pb-6">
                 <div className="flex items-center justify-center gap-3">
-                  <Logo size={48} />
+                  <Logo size={40} />
                   <div className="text-left">
-                    <h2 className="text-2xl font-black text-[#001c46] tracking-tight">GP ACADEMY</h2>
-                    <p className="text-xs font-bold text-red-600 uppercase tracking-widest">Official Marksheet & Academic Record</p>
+                    <h2 className="text-xl sm:text-2xl font-black text-[#001c46] tracking-tight">GP ACADEMY</h2>
+                    <p className="text-[10px] sm:text-xs font-bold text-red-600 uppercase tracking-widest">Official Marksheet & Academic Record</p>
                   </div>
                 </div>
                 <div className="pt-2 text-xs font-bold text-gray-600 uppercase tracking-wider">
@@ -156,7 +156,7 @@ export const StudentResultsView: React.FC<StudentResultsViewProps> = ({ results 
               </div>
 
               {/* Student Metadata Header */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200 text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 bg-gray-50 p-3 sm:p-4 rounded-xl border border-gray-200 text-xs">
                 <div>
                   <span className="text-gray-400 font-bold uppercase block text-[10px]">Student Name</span>
                   <span className="font-black text-gray-900">{selectedResult.studentName}</span>
@@ -177,7 +177,7 @@ export const StudentResultsView: React.FC<StudentResultsViewProps> = ({ results 
 
               {/* Subject Marks Table */}
               <div className="overflow-x-auto rounded-xl border border-gray-200">
-                <table className="w-full text-left text-xs">
+                <table className="w-full text-left text-xs min-w-[480px]">
                   <thead className="bg-[#001c46] text-white font-bold uppercase text-[10px]">
                     <tr>
                       <th className="px-4 py-3">#</th>
@@ -210,7 +210,7 @@ export const StudentResultsView: React.FC<StudentResultsViewProps> = ({ results 
               </div>
 
               {/* Overall Summary Row */}
-              <div className="flex flex-wrap items-center justify-between gap-4 bg-blue-50 p-4 rounded-xl border border-blue-200 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 bg-blue-50 p-3 sm:p-4 rounded-xl border border-blue-200 text-xs">
                 <div>
                   <span className="text-gray-500 font-medium block">Overall Percentage</span>
                   <span className="text-xl font-black text-[#001c46]">{selectedResult.percentage}%</span>
@@ -237,9 +237,9 @@ export const StudentResultsView: React.FC<StudentResultsViewProps> = ({ results 
                 </div>
               )}
 
-              <div className="flex justify-between items-end pt-8 text-xs font-bold text-gray-500">
+              <div className="flex justify-between items-end pt-8 text-xs font-bold text-gray-500 gap-4">
                 <div className="text-center">
-                  <div className="border-b border-gray-400 w-32 mb-1" />
+                  <div className="border-b border-gray-400 w-24 sm:w-32 mb-1" />
                   <span>Class Teacher</span>
                 </div>
                 <div className="text-center">
@@ -253,10 +253,10 @@ export const StudentResultsView: React.FC<StudentResultsViewProps> = ({ results 
             </div>
 
             {/* Modal Actions */}
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 sm:gap-3 pt-2">
               <button
                 onClick={() => setSelectedResult(null)}
-                className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all"
+                className="w-full sm:w-auto px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition-all text-center"
               >
                 Close
               </button>
@@ -268,7 +268,7 @@ export const StudentResultsView: React.FC<StudentResultsViewProps> = ({ results 
                     landscape: false,
                   })
                 }
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#001c46] hover:bg-blue-900 text-white text-xs font-bold rounded-xl transition-all shadow-md cursor-pointer active:scale-95"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#001c46] hover:bg-blue-900 text-white text-xs font-bold rounded-xl transition-all shadow-md cursor-pointer active:scale-95 text-center"
               >
                 <Printer className="w-4 h-4 text-[#FFC907]" />
                 <span>Print / Download PDF</span>

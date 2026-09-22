@@ -356,6 +356,7 @@ export default function StudentsManager({ currentPath, onNavigate }: StudentsMan
           onEdit={() => onNavigate(`/admin/students/${activeStudent.uid}/edit`)}
           onDisable={() => setDisableTarget(activeStudent)}
           onBack={() => onNavigate('/admin/students')}
+          onManagePortalAccess={() => onNavigate('/admin/portal-users')}
         />
 
         {/* Confirm Enable / Disable Modal */}

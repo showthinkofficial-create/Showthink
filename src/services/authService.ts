@@ -4,29 +4,94 @@ import {
   GoogleAuthProvider,
   signOut, 
   sendPasswordResetEmail,
+  verifyPasswordResetCode,
+  confirmPasswordReset,
   User as FirebaseUser
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { UserProfile } from '../types/auth';
+import { UserProfile, UserRole } from '../types/auth';
 import { auditService } from './auditService';
 
 export const authService = {
+  // Synchronize or create user profile in Firestore
+  async ensureUserProfile(user: FirebaseUser): Promise<UserProfile> {
+    const emailLower = (user.email || '').toLowerCase().trim();
+    const isSuperAdmin = emailLower === 'showthinkofficial@gmail.com';
+
+    // Strict Security Rule: Never auto-grant elevated roles based on email substrings.
+    // Only the verified institutional master email is granted SUPER_ADMIN.
+    // All other newly encountered users strictly default to PORTAL_USER.
+    const defaultRole: UserRole = isSuperAdmin ? 'SUPER_ADMIN' : 'PORTAL_USER';
+
+    const userRef = doc(db, 'users', user.uid);
+    try {
+      const docSnap = await getDoc(userRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data() as UserProfile;
+        // If super admin account, guarantee role is SUPER_ADMIN and status is ACTIVE
+        if (isSuperAdmin && (data.role !== 'SUPER_ADMIN' || data.status !== 'ACTIVE' || data.loginEnabled === false)) {
+          const updated: UserProfile = {
+            ...data,
+            role: 'SUPER_ADMIN',
+            status: 'ACTIVE',
+            loginEnabled: true,
+            updatedAt: new Date().toISOString(),
+          };
+          await setDoc(userRef, updated, { merge: true });
+          return updated;
+        }
+        return data;
+      } else {
+        // Document doesn't exist yet in Firestore
+        const newProfile: UserProfile = {
+          uid: user.uid,
+          email: user.email || '',
+          displayName: user.displayName || (isSuperAdmin ? 'Super Administrator' : emailLower.split('@')[0] || 'User'),
+          role: defaultRole,
+          status: 'ACTIVE',
+          loginEnabled: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        await setDoc(userRef, newProfile);
+        return newProfile;
+      }
+    } catch (err) {
+      console.warn('Could not read/write Firestore users doc; returning profile:', err);
+      return {
+        uid: user.uid,
+        email: user.email || '',
+        displayName: user.displayName || (isSuperAdmin ? 'Super Administrator' : emailLower.split('@')[0] || 'User'),
+        role: defaultRole,
+        status: 'ACTIVE',
+        loginEnabled: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+    }
+  },
+
   // Login with email and password
   async login(email: string, password: string): Promise<FirebaseUser> {
+    const cleanEmail = email.trim();
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, password);
       const user = userCredential.user;
 
+      // Ensure user profile in Firestore
+      await this.ensureUserProfile(user);
+
       // Audit log login success
+      const isSuper = (user.email || '').toLowerCase() === 'showthinkofficial@gmail.com';
       await auditService.logAction({
         actorUid: user.uid,
-        actorEmail: user.email || email,
-        actorRole: 'USER',
+        actorEmail: user.email || cleanEmail,
+        actorRole: isSuper ? 'SUPER_ADMIN' : 'USER',
         action: 'LOGIN_SUCCESS',
         targetType: 'AUTH',
         targetId: user.uid,
-        targetName: user.email || email,
+        targetName: user.email || cleanEmail,
         success: true,
       });
 
@@ -35,11 +100,11 @@ export const authService = {
       // Audit log login failure
       await auditService.logAction({
         actorUid: 'anonymous',
-        actorEmail: email,
+        actorEmail: cleanEmail,
         actorRole: 'ANONYMOUS',
         action: 'LOGIN_FAILED',
         targetType: 'AUTH',
-        targetName: email,
+        targetName: cleanEmail,
         success: false,
         metadata: {
           errorCode: err.code || 'UNKNOWN_ERROR',
@@ -59,33 +124,7 @@ export const authService = {
     const firebaseUser = userCredential.user;
 
     // Ensure user profile document exists in Firestore
-    const userRef = doc(db, 'users', firebaseUser.uid);
-    try {
-      const docSnap = await getDoc(userRef);
-      if (!docSnap.exists()) {
-        const emailLower = (firebaseUser.email || '').toLowerCase();
-        let role: 'SUPER_ADMIN' | 'ADMIN' | 'TEACHER' | 'PORTAL_USER' = 'PORTAL_USER';
-        if (emailLower.includes('admin') || emailLower === 'showthinkofficial@gmail.com') {
-          role = 'ADMIN';
-        } else if (emailLower.includes('teacher') || emailLower.includes('faculty')) {
-          role = 'TEACHER';
-        }
-
-        const newProfile: UserProfile = {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email || '',
-          displayName: firebaseUser.displayName || emailLower.split('@')[0] || 'User',
-          role: role,
-          status: 'ACTIVE',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        await setDoc(userRef, newProfile);
-      }
-    } catch (error) {
-      console.warn('Warning creating/checking Google user profile in Firestore:', error);
-    }
+    await this.ensureUserProfile(firebaseUser);
 
     return firebaseUser;
   },
@@ -95,9 +134,36 @@ export const authService = {
     await signOut(auth);
   },
 
-  // Send password reset email
-  async sendPasswordReset(email: string): Promise<void> {
-    await sendPasswordResetEmail(auth, email);
+  // Send official password reset email
+  async sendPasswordReset(email: string, returnPath = '/portal/login'): Promise<void> {
+    const cleanEmail = email.trim();
+    try {
+      const actionCodeSettings = {
+        url: `${window.location.origin}${returnPath}`,
+        handleCodeInApp: false,
+      };
+      await sendPasswordResetEmail(auth, cleanEmail, actionCodeSettings);
+    } catch (error: any) {
+      // If customized continue url is not whitelisted, gracefully send default reset email
+      if (
+        error?.code === 'auth/unauthorized-continue-uri' ||
+        error?.code === 'auth/invalid-continue-uri'
+      ) {
+        await sendPasswordResetEmail(auth, cleanEmail);
+      } else {
+        throw error;
+      }
+    }
+  },
+
+  // Verify Firebase password reset action code (official flow)
+  async verifyPasswordResetCode(code: string): Promise<string> {
+    return await verifyPasswordResetCode(auth, code);
+  },
+
+  // Confirm and set new password in Firebase Authentication (official flow)
+  async confirmPasswordReset(code: string, newPassword: string): Promise<void> {
+    await confirmPasswordReset(auth, code, newPassword);
   },
 
   // Fetch user profile from Firestore users/{uid}
@@ -106,30 +172,21 @@ export const authService = {
     try {
       const docSnap = await getDoc(userRef);
       if (docSnap.exists()) {
-        return docSnap.data() as UserProfile;
+        const profile = docSnap.data() as UserProfile;
+        if ((profile.email || '').toLowerCase() === 'showthinkofficial@gmail.com') {
+          profile.role = 'SUPER_ADMIN';
+          profile.status = 'ACTIVE';
+          profile.loginEnabled = true;
+        }
+        return profile;
       }
     } catch (error) {
       console.warn('Warning/offline fetching user profile from Firestore:', error);
     }
 
-    // Fallback profile if Firestore is offline, document not found, or connection failed
+    // Fallback profile if Firestore is offline or document not created yet
     if (auth.currentUser && auth.currentUser.uid === uid) {
-      const emailLower = (auth.currentUser.email || '').toLowerCase();
-      let role: 'SUPER_ADMIN' | 'ADMIN' | 'TEACHER' | 'PORTAL_USER' = 'PORTAL_USER';
-      if (emailLower.includes('admin') || emailLower === 'showthinkofficial@gmail.com') {
-        role = 'ADMIN';
-      } else if (emailLower.includes('teacher') || emailLower.includes('faculty')) {
-        role = 'TEACHER';
-      }
-      return {
-        uid: auth.currentUser.uid,
-        email: auth.currentUser.email || '',
-        displayName: auth.currentUser.displayName || emailLower.split('@')[0] || 'User',
-        role: role,
-        status: 'ACTIVE',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
+      return await this.ensureUserProfile(auth.currentUser);
     }
 
     return null;

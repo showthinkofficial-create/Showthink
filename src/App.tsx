@@ -12,6 +12,7 @@ import { RoleGuard } from './components/auth/RoleGuard';
 // Auth & Panel Pages
 import Login from './pages/auth/Login';
 import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
 import AdminPanel from './pages/panels/AdminPanel';
 import TeacherPanel from './pages/panels/TeacherPanel';
 import PortalPanel from './pages/panels/PortalPanel';
@@ -32,24 +33,44 @@ import Blog from './pages/Blog';
 import { updatePageSEO } from './components/common/SEOHead';
 
 // Lucide Icons
-import { Home as HomeIcon, Phone, GraduationCap, MapPin, MessageSquare, AlertCircle } from 'lucide-react';
+import { Home as HomeIcon, Phone, GraduationCap, MapPin, MessageSquare, AlertCircle, LogIn, Bot, Sparkles } from 'lucide-react';
 import { SCHOOL_DETAILS } from './data/content';
+import AIChatbotModal from './components/common/AIChatbotModal';
 
 function MainApp() {
   const [activePage, setActivePage] = useState<ActivePage>('home');
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
   // Sync state with browser path location on init & popstate
   useEffect(() => {
     const handleLocationSync = () => {
       const path = window.location.pathname.toLowerCase().replace(/\/$/, '');
-      if (path === '/login' || path === '/portal/login') setActivePage('login');
-      else if (path === '/forgot-password') setActivePage('forgot-password');
-      else if (path === '/admin' || path.startsWith('/admin/')) setActivePage('admin');
-      else if (path === '/teacher' || path.startsWith('/teacher/')) setActivePage('teacher');
-      else if (path === '/portal' || path.startsWith('/portal/')) setActivePage('portal');
-      else if (path === '/student' || path.startsWith('/student/')) setActivePage('portal');
-      else if (path === '/parent' || path.startsWith('/parent/')) setActivePage('portal');
+      const searchParams = new URLSearchParams(window.location.search);
+      const mode = searchParams.get('mode');
+      const oobCode = searchParams.get('oobCode');
+
+      if (mode === 'resetPassword' || oobCode || path === '/reset-password') {
+        setActivePage('reset-password');
+      } else if (path === '/admin/login') {
+        setActivePage('admin-login');
+      } else if (path === '/teacher/login') {
+        setActivePage('teacher-login');
+      } else if (path === '/login' || path === '/portal/login') {
+        setActivePage('login');
+      } else if (path === '/forgot-password') {
+        setActivePage('forgot-password');
+      } else if (path === '/admin' || path.startsWith('/admin/')) {
+        setActivePage('admin');
+      } else if (path === '/teacher' || path.startsWith('/teacher/')) {
+        setActivePage('teacher');
+      } else if (path === '/portal' || path.startsWith('/portal/')) {
+        setActivePage('portal');
+      } else if (path === '/student' || path.startsWith('/student/')) {
+        setActivePage('portal');
+      } else if (path === '/parent' || path.startsWith('/parent/')) {
+        setActivePage('portal');
+      }
     };
 
     handleLocationSync();
@@ -71,7 +92,10 @@ function MainApp() {
       legal: '/legal',
       blog: '/blog',
       login: '/portal/login',
+      'admin-login': '/admin/login',
+      'teacher-login': '/teacher/login',
       'forgot-password': '/forgot-password',
+      'reset-password': '/reset-password',
       admin: '/admin',
       teacher: '/teacher',
       portal: '/portal',
@@ -89,7 +113,10 @@ function MainApp() {
 
     const routeMap: Partial<Record<ActivePage, string>> = {
       login: '/portal/login',
+      'admin-login': '/admin/login',
+      'teacher-login': '/teacher/login',
       'forgot-password': '/forgot-password',
+      'reset-password': '/reset-password',
       admin: '/admin',
       teacher: '/teacher/dashboard',
       portal: '/portal/dashboard',
@@ -109,7 +136,10 @@ function MainApp() {
     const popupTimer = setTimeout(() => {
       if (
         activePage !== 'login' &&
+        activePage !== 'admin-login' &&
+        activePage !== 'teacher-login' &&
         activePage !== 'forgot-password' &&
+        activePage !== 'reset-password' &&
         activePage !== 'admin' &&
         activePage !== 'teacher' &&
         activePage !== 'student' &&
@@ -124,9 +154,48 @@ function MainApp() {
   }, []);
 
   // Full screen standalone views for Login & Protected Role Panels
+  if (activePage === 'admin-login') {
+    return (
+      <Login
+        portalType="admin"
+        isAdminMode={true}
+        onNavigateToForgotPassword={() => {
+          const target = '/forgot-password?role=admin';
+          window.history.pushState({}, '', target);
+          window.dispatchEvent(new PopStateEvent('popstate'));
+        }}
+        onNavigateHome={() => handlePageChange('home')}
+        onLoginSuccess={(role) => {
+          if (role === 'SUPER_ADMIN' || role === 'ADMIN') handlePageChange('admin');
+          else handlePageChange('home');
+        }}
+      />
+    );
+  }
+
+  if (activePage === 'teacher-login') {
+    return (
+      <Login
+        portalType="teacher"
+        onNavigateToForgotPassword={() => {
+          const target = '/forgot-password?role=teacher';
+          window.history.pushState({}, '', target);
+          window.dispatchEvent(new PopStateEvent('popstate'));
+        }}
+        onNavigateHome={() => handlePageChange('home')}
+        onLoginSuccess={(role) => {
+          if (role === 'TEACHER') handlePageChange('teacher');
+          else if (role === 'SUPER_ADMIN' || role === 'ADMIN') handlePageChange('admin');
+          else handlePageChange('home');
+        }}
+      />
+    );
+  }
+
   if (activePage === 'login') {
     return (
       <Login
+        portalType="portal"
         onNavigateToForgotPassword={() => handlePageChange('forgot-password')}
         onNavigateHome={() => handlePageChange('home')}
         onLoginSuccess={(role) => {
@@ -142,15 +211,31 @@ function MainApp() {
   if (activePage === 'forgot-password') {
     return (
       <ForgotPassword
-        onNavigateToLogin={() => handlePageChange('login')}
+        onNavigateToLogin={() => {
+          const searchParams = new URLSearchParams(window.location.search);
+          const role = searchParams.get('role');
+          if (role === 'admin') handlePageChange('admin-login');
+          else if (role === 'teacher') handlePageChange('teacher-login');
+          else handlePageChange('login');
+        }}
         onNavigateHome={() => handlePageChange('home')}
+      />
+    );
+  }
+
+  if (activePage === 'reset-password') {
+    return (
+      <ResetPassword
+        onNavigateToLogin={() => handlePageChange('admin-login')}
+        onNavigateHome={() => handlePageChange('home')}
+        onNavigateToForgotPassword={() => handlePageChange('forgot-password')}
       />
     );
   }
 
   if (activePage === 'admin') {
     return (
-      <ProtectedRoute onNavigateToLogin={() => handlePageChange('login')}>
+      <ProtectedRoute onNavigateToLogin={() => handlePageChange('admin-login')}>
         <RoleGuard allowedRoles={['ADMIN', 'SUPER_ADMIN']} onNavigateToPanel={(r) => handlePageChange(r.toLowerCase() as ActivePage)}>
           <AdminPanel onNavigateHome={() => handlePageChange('home')} />
         </RoleGuard>
@@ -160,7 +245,7 @@ function MainApp() {
 
   if (activePage === 'teacher') {
     return (
-      <ProtectedRoute onNavigateToLogin={() => handlePageChange('login')}>
+      <ProtectedRoute onNavigateToLogin={() => handlePageChange('teacher-login')}>
         <RoleGuard allowedRoles={['TEACHER']} onNavigateToPanel={(r) => handlePageChange(r.toLowerCase() as ActivePage)}>
           <TeacherPanel onNavigateHome={() => handlePageChange('home')} />
         </RoleGuard>
@@ -256,20 +341,35 @@ function MainApp() {
         </a>
 
         <button
-          onClick={() => handlePageChange('academics')}
-          className="flex flex-col items-center justify-center bg-[#001c46] text-[#FFC907] w-14 h-14 rounded-full -mt-7 border-4 border-white shadow-lg active:scale-95 transition-all"
+          onClick={() => handlePageChange('login')}
+          title="Portal Login"
+          aria-label="Portal Login"
+          className={`flex flex-col items-center justify-center bg-[#001c46] hover:bg-[#002866] text-[#FFC907] w-14 h-14 rounded-full -mt-7 border-4 border-white shadow-lg active:scale-95 transition-all cursor-pointer ${
+            activePage === 'login' || activePage === 'portal' || activePage === 'teacher' || activePage === 'admin'
+              ? 'ring-2 ring-[#FFC907] scale-105'
+              : ''
+          }`}
         >
-          <GraduationCap className="w-6 h-6" />
+          <LogIn className="w-5 h-5" />
+          <span className="text-[8px] font-black uppercase tracking-tight text-white mt-0.5 leading-none">Portal</span>
         </button>
 
         <button
-          onClick={() => handlePageChange('admissions')}
-          className={`flex flex-col items-center justify-center transition-all ${
-            activePage === 'admissions' ? 'text-[#001c46] scale-105' : 'text-gray-400 hover:text-gray-700'
+          onClick={() => setIsChatbotOpen(true)}
+          className={`flex flex-col items-center justify-center transition-all cursor-pointer ${
+            isChatbotOpen ? 'text-[#001c46] scale-105 font-black' : 'text-gray-400 hover:text-gray-700'
           }`}
+          title="GP Shiksha AI Assistant"
+          aria-label="AI Chatbot"
         >
-          <MessageSquare className="w-5 h-5" />
-          <span className="text-[10px] font-bold mt-1 uppercase tracking-wider">Enquire</span>
+          <div className="relative">
+            <Bot className="w-5 h-5 text-[#001c46]" />
+            <span className="absolute -top-1 -right-1.5 flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FFC907] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FFC907]"></span>
+            </span>
+          </div>
+          <span className="text-[10px] font-bold mt-1 uppercase tracking-wider text-[#001c46]">AI Chat</span>
         </button>
 
         <button
@@ -285,6 +385,23 @@ function MainApp() {
 
       {/* Mobile offset */}
       <div className="h-16 md:hidden"></div>
+
+      {/* Desktop Floating AI Chatbot Button */}
+      <button
+        onClick={() => setIsChatbotOpen(true)}
+        className="hidden md:flex fixed bottom-24 right-6 z-50 bg-[#001c46] hover:bg-[#002866] text-[#FFC907] px-4 py-3 rounded-full shadow-[0_4px_16px_rgba(0,28,70,0.35)] hover:shadow-[0_6px_22px_rgba(0,28,70,0.45)] hover:scale-105 active:scale-95 transition-all duration-300 items-center gap-2.5 group cursor-pointer border border-[#FFC907]/30"
+        title="GP Shiksha AI Assistant"
+        id="ai-chatbot-desktop-button"
+      >
+        <div className="relative">
+          <Bot className="w-5 h-5 text-[#FFC907]" />
+          <span className="absolute -top-1 -right-1 flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FFC907] opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FFC907]"></span>
+          </span>
+        </div>
+        <span className="text-xs font-black uppercase tracking-wider text-white">Ask AI</span>
+      </button>
 
       {/* WhatsApp Floating Button */}
       <a
@@ -308,6 +425,13 @@ function MainApp() {
 
       {/* Global Apply/Enquiry Modal */}
       <ApplyModal isOpen={isApplyModalOpen} onClose={() => setIsApplyModalOpen(false)} />
+
+      {/* GP Shiksha AI Chatbot Modal */}
+      <AIChatbotModal 
+        isOpen={isChatbotOpen} 
+        onClose={() => setIsChatbotOpen(false)} 
+        onOpenApplyModal={() => setIsApplyModalOpen(true)} 
+      />
     </div>
   );
 }

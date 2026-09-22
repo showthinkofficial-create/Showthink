@@ -5,6 +5,7 @@ import { TeacherNavigation, TeacherTab } from '../../components/teacher/TeacherN
 import { TeacherDashboardView } from '../../components/teacher/TeacherDashboardView';
 import { TeacherProfileView } from '../../components/teacher/TeacherProfileView';
 import { TeacherClassesView } from '../../components/teacher/TeacherClassesView';
+import { TeacherStudentsView } from '../../components/teacher/TeacherStudentsView';
 import { TeacherAttendanceView } from '../../components/teacher/TeacherAttendanceView';
 import { TeacherAttendanceHistoryView } from '../../components/teacher/TeacherAttendanceHistoryView';
 import { TeacherResultsView } from '../../components/teacher/TeacherResultsView';
@@ -37,6 +38,7 @@ export default function TeacherPanel({ onNavigateHome }: TeacherPanelProps) {
     const path = window.location.pathname;
     if (path.includes('/teacher/profile')) return 'profile';
     if (path.includes('/teacher/classes')) return 'classes';
+    if (path.includes('/teacher/students')) return 'students';
     if (path.includes('/teacher/attendance/history')) return 'attendance-history';
     if (path.includes('/teacher/attendance')) return 'attendance';
     if (path.includes('/teacher/results')) return 'results';
@@ -298,6 +300,14 @@ export default function TeacherPanel({ onNavigateHome }: TeacherPanelProps) {
 
         {activeTab === 'classes' && (
           <TeacherClassesView
+            teacher={teacher}
+            classSummaries={classSummaries}
+            loading={loading}
+          />
+        )}
+
+        {activeTab === 'students' && (
+          <TeacherStudentsView
             teacher={teacher}
             classSummaries={classSummaries}
             loading={loading}

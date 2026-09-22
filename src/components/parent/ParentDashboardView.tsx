@@ -56,7 +56,7 @@ export const ParentDashboardView: React.FC<ParentDashboardViewProps> = ({
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Top Welcome Card */}
-      <div className="bg-gradient-to-r from-[#001c46] via-[#0b2b5c] to-[#001c46] rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[#001c46] via-[#0b2b5c] to-[#001c46] rounded-3xl p-4 sm:p-8 text-white shadow-xl relative overflow-hidden">
         <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#FFC907]/15 to-transparent pointer-events-none"></div>
 
         <div className="relative z-10 space-y-4">
@@ -107,7 +107,7 @@ export const ParentDashboardView: React.FC<ParentDashboardViewProps> = ({
           {selectedChild && (
             <div className="pt-2 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-[#FFC907] text-[#001c46] font-black flex items-center justify-center text-xs">
+                <div className="w-8 h-8 rounded-lg bg-[#FFC907] text-[#001c46] font-black flex items-center justify-center text-xs shrink-0">
                   {selectedChild.name.charAt(0)}
                 </div>
                 <div>
@@ -152,12 +152,12 @@ export const ParentDashboardView: React.FC<ParentDashboardViewProps> = ({
       )}
 
       {/* Metric Stat Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         
         {/* Card 1: Attendance */}
         <div
           onClick={() => onNavigateTab('attendance')}
-          className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
+          className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
         >
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
@@ -184,7 +184,7 @@ export const ParentDashboardView: React.FC<ParentDashboardViewProps> = ({
         {/* Card 2: Fee Status */}
         <div
           onClick={() => onNavigateTab('fees')}
-          className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
+          className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
         >
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
@@ -211,7 +211,7 @@ export const ParentDashboardView: React.FC<ParentDashboardViewProps> = ({
         {/* Card 3: Latest Result */}
         <div
           onClick={() => onNavigateTab('results')}
-          className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
+          className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
         >
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
@@ -238,7 +238,7 @@ export const ParentDashboardView: React.FC<ParentDashboardViewProps> = ({
         {/* Card 4: School Notices */}
         <div
           onClick={() => onNavigateTab('notices')}
-          className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
+          className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
         >
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
@@ -271,10 +271,10 @@ export const ParentDashboardView: React.FC<ParentDashboardViewProps> = ({
         <div className="lg:col-span-2 space-y-6">
           
           {/* Fee Settlement Action Box */}
-          <div className="bg-white rounded-3xl p-6 border border-gray-200 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="bg-white rounded-3xl p-4 sm:p-6 border border-gray-200 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-amber-100 text-amber-800 rounded-xl">
+                <div className="p-2 bg-amber-100 text-amber-800 rounded-xl shrink-0">
                   <CreditCard className="w-5 h-5" />
                 </div>
                 <div>
@@ -290,34 +290,34 @@ export const ParentDashboardView: React.FC<ParentDashboardViewProps> = ({
               <button
                 type="button"
                 onClick={onOpenPayFeeModal}
-                className="px-4 py-2 bg-[#FFC907] hover:bg-[#e6b400] text-[#001c46] font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-xs cursor-pointer"
+                className="px-4 py-2 bg-[#FFC907] hover:bg-[#e6b400] text-[#001c46] font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-xs cursor-pointer w-full sm:w-auto text-center"
               >
                 Pay Fee
               </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 bg-gray-50 p-4 rounded-2xl border border-gray-200/80 text-center">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 bg-gray-50 p-3 sm:p-4 rounded-2xl border border-gray-200/80 text-center">
               <div>
                 <span className="text-[10px] font-bold text-gray-400 uppercase block">Total Fee</span>
-                <span className="text-sm sm:text-base font-black text-gray-800">
+                <span className="text-xs sm:text-base font-black text-gray-800">
                   ₹{totalFee.toLocaleString('en-IN')}
                 </span>
               </div>
               <div className="border-x border-gray-200">
                 <span className="text-[10px] font-bold text-gray-400 uppercase block">Paid</span>
-                <span className="text-sm sm:text-base font-black text-emerald-600">
+                <span className="text-xs sm:text-base font-black text-emerald-600">
                   ₹{paidAmount.toLocaleString('en-IN')}
                 </span>
               </div>
               <div>
                 <span className="text-[10px] font-bold text-gray-400 uppercase block">Pending</span>
-                <span className="text-sm sm:text-base font-black text-amber-600">
+                <span className="text-xs sm:text-base font-black text-amber-600">
                   ₹{pendingAmount.toLocaleString('en-IN')}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-gray-500 pt-1">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-gray-500 pt-1">
               <span>Verified fee receipts available for download in Fee section.</span>
               <button
                 type="button"
@@ -382,7 +382,7 @@ export const ParentDashboardView: React.FC<ParentDashboardViewProps> = ({
         </div>
 
         {/* Right Column (1 col): Important Notices */}
-        <div className="bg-white rounded-3xl p-6 border border-gray-200 shadow-xs space-y-4">
+        <div className="bg-white rounded-3xl p-4 sm:p-6 border border-gray-200 shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-gray-100">
             <div className="flex items-center gap-2">
               <Bell className="w-4 h-4 text-[#001c46]" />

@@ -1,41 +1,43 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { portalUserService } from '../../services/portalUserService';
-import { studentService } from '../../services/studentService';
 import { 
-  PortalUserWithStudents, 
-  CreatePortalUserFormData, 
-  PortalUserFilterOptions 
+  UnifiedPortalUser, 
+  PortalUserType, 
+  CreateTeacherPortalUserFormData, 
+  CreateParentStudentPortalUserFormData 
 } from '../../types/portalUser';
 import { Student, CLASS_OPTIONS } from '../../types/student';
+import { SUBJECT_OPTIONS, SECTION_OPTIONS } from '../../types/teacher';
 import {
   KeyRound,
   Plus,
   Search,
-  Filter,
   CheckCircle2,
   XCircle,
-  ShieldAlert,
   Mail,
   UserCheck,
   Users,
   RotateCcw,
   Eye,
-  EyeOff,
   Link2,
-  Unlink,
   Lock,
   Unlock,
   Send,
   Loader2,
   AlertTriangle,
-  ChevronRight,
-  ExternalLink,
-  Sparkles,
-  ArrowUpDown,
   RefreshCw,
   Copy,
-  Check
+  Check,
+  GraduationCap,
+  Sparkles,
+  Edit3,
+  Phone,
+  Shield,
+  BookOpen,
+  Calendar,
+  ExternalLink,
+  Info
 } from 'lucide-react';
 
 interface PortalUsersManagerProps {
@@ -47,47 +49,80 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
   const { userProfile, user } = useAuth();
 
   // State
-  const [users, setUsers] = useState<PortalUserWithStudents[]>([]);
-  const [availableStudents, setAvailableStudents] = useState<Student[]>([]);
+  const [users, setUsers] = useState<UnifiedPortalUser[]>([]);
+  const [allActiveStudents, setAllActiveStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [successToast, setSuccessToast] = useState<string | null>(null);
 
   // Filters
-  const [filters, setFilters] = useState<PortalUserFilterOptions>({
-    searchQuery: '',
-    accountStatus: 'ALL',
-    loginStatus: 'ALL',
-    className: '',
-    section: '',
-  });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [userTypeFilter, setUserTypeFilter] = useState<'ALL' | 'TEACHER' | 'PARENT_STUDENT'>('ALL');
+  const [accountStatusFilter, setAccountStatusFilter] = useState<'ALL' | 'ACTIVE' | 'DISABLED'>('ALL');
+  const [classFilter, setClassFilter] = useState<string>('');
+  const [sectionFilter, setSectionFilter] = useState<string>('');
 
-  // Modals & Active Selections
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  // Modals
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
-  const [isUnlinkConfirmOpen, setIsUnlinkConfirmOpen] = useState(false);
-  const [isToggleLoginConfirmOpen, setIsToggleLoginConfirmOpen] = useState(false);
+  const [isToggleStatusModalOpen, setIsToggleStatusModalOpen] = useState(false);
 
-  const [selectedUser, setSelectedUser] = useState<PortalUserWithStudents | null>(null);
-  const [selectedStudentToUnlink, setSelectedStudentToUnlink] = useState<Student | null>(null);
-  const [selectedStudentToLink, setSelectedStudentToLink] = useState<string>('');
+  // Selected User for actions
+  const [selectedUser, setSelectedUser] = useState<UnifiedPortalUser | null>(null);
 
-  // Create Form State
-  const [createFormData, setCreateFormData] = useState<CreatePortalUserFormData>({
-    studentUid: '',
+  // Add User Form State
+  const [selectedUserType, setSelectedUserType] = useState<PortalUserType>('TEACHER');
+  
+  // Teacher Form Data
+  const [teacherFormData, setTeacherFormData] = useState<CreateTeacherPortalUserFormData>({
+    name: '',
     email: '',
-    password: '',
-    confirmPassword: '',
+    phone: '',
+    alternatePhone: '',
+    teacherId: '',
+    subjects: ['Mathematics'],
+    assignedClasses: ['Class 9', 'Class 10'],
+    assignedSections: ['A'],
+    qualification: '',
+    status: 'ACTIVE',
   });
-  const [createFormError, setCreateFormError] = useState<string | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [copiedEmail, setCopiedEmail] = useState<string | null>(null);
 
-  // Submitting States
-  const [isActionLoading, setIsActionLoading] = useState(false);
+  // Parent/Student Form Data
+  const [parentFormData, setParentFormData] = useState<CreateParentStudentPortalUserFormData>({
+    studentUid: '',
+    studentId: '',
+    email: '',
+    phone: '',
+    name: '',
+    status: 'ACTIVE',
+  });
+
+  // Edit User State
+  const [editTeacherData, setEditTeacherData] = useState({
+    name: '',
+    phone: '',
+    alternatePhone: '',
+    teacherId: '',
+    subjects: [] as string[],
+    assignedClasses: [] as string[],
+    assignedSections: [] as string[],
+    qualification: '',
+    status: 'ACTIVE' as 'ACTIVE' | 'DISABLED',
+  });
+
+  const [editParentData, setEditParentData] = useState({
+    name: '',
+    phone: '',
+    studentUid: '',
+    studentId: '',
+    status: 'ACTIVE' as 'ACTIVE' | 'DISABLED',
+  });
+
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState<string | null>(null);
 
   // Authorization Check
   const isSuperAdmin = userProfile?.role === 'SUPER_ADMIN';
@@ -96,7 +131,7 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
   // Auto-dismiss toast
   useEffect(() => {
     if (successToast) {
-      const timer = setTimeout(() => setSuccessToast(null), 4000);
+      const timer = setTimeout(() => setSuccessToast(null), 4500);
       return () => clearTimeout(timer);
     }
   }, [successToast]);
@@ -108,21 +143,20 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
     setError(null);
 
     try {
-      const [usersData, availStudents] = await Promise.all([
-        portalUserService.getPortalUsers(),
-        portalUserService.getAvailableStudentsForLinking(),
+      const [unifiedUsers, activeStudents] = await Promise.all([
+        portalUserService.getUnifiedPortalUsers(),
+        portalUserService.getAllActiveStudents(),
       ]);
-      setUsers(usersData);
-      setAvailableStudents(availStudents);
+      setUsers(unifiedUsers);
+      setAllActiveStudents(activeStudents);
 
-      // If a user was selected in detail modal, refresh their data
       if (selectedUser) {
-        const updated = usersData.find((u) => u.uid === selectedUser.uid);
+        const updated = unifiedUsers.find((u) => u.uid === selectedUser.uid);
         if (updated) setSelectedUser(updated);
       }
     } catch (err: any) {
       console.error('Failed to load portal users:', err);
-      setError('Failed to load portal users. Please check your connection and try again.');
+      setError('Failed to load portal users. Please check your connection and retry.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -135,319 +169,405 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
     }
   }, [isAdmin]);
 
-  // Filtered Portal Users
-  const filteredUsers = useMemo(() => {
-    return users.filter((u) => {
-      const search = filters.searchQuery.toLowerCase().trim();
-      const emailMatches = u.email.toLowerCase().includes(search);
-      const nameMatches = u.displayName.toLowerCase().includes(search);
-      
-      const studentMatches = u.students.some((std) => {
-        return (
-          std.name.toLowerCase().includes(search) ||
-          std.studentId.toLowerCase().includes(search) ||
-          std.className.toLowerCase().includes(search) ||
-          std.section.toLowerCase().includes(search) ||
-          (std.parentName && std.parentName.toLowerCase().includes(search))
-        );
+  // Generate next teacher ID on opening add modal
+  const handleOpenAddModal = async () => {
+    setFormError(null);
+    setSelectedUserType('TEACHER');
+    
+    // Auto-fetch next teacher ID
+    try {
+      const nextId = await portalUserService.generateNextTeacherId();
+      setTeacherFormData({
+        name: '',
+        email: '',
+        phone: '',
+        alternatePhone: '',
+        teacherId: nextId,
+        subjects: ['Mathematics'],
+        assignedClasses: ['Class 9', 'Class 10'],
+        assignedSections: ['A'],
+        qualification: 'B.Ed, M.Sc',
+        status: 'ACTIVE',
       });
+    } catch {
+      setTeacherFormData({
+        name: '',
+        email: '',
+        phone: '',
+        alternatePhone: '',
+        teacherId: `GP-T-${new Date().getFullYear()}-001`,
+        subjects: ['Mathematics'],
+        assignedClasses: ['Class 9'],
+        assignedSections: ['A'],
+        qualification: '',
+        status: 'ACTIVE',
+      });
+    }
 
-      if (search && !emailMatches && !nameMatches && !studentMatches) {
-        return false;
-      }
-
-      // Account Status Filter
-      if (filters.accountStatus !== 'ALL') {
-        if (u.status !== filters.accountStatus) return false;
-      }
-
-      // Login Status Filter
-      if (filters.loginStatus !== 'ALL') {
-        const isEnabled = u.loginEnabled;
-        if (filters.loginStatus === 'ENABLED' && !isEnabled) return false;
-        if (filters.loginStatus === 'DISABLED' && isEnabled) return false;
-      }
-
-      // Class Filter
-      if (filters.className) {
-        const hasClass = u.students.some((std) => std.className === filters.className);
-        if (!hasClass) return false;
-      }
-
-      // Section Filter
-      if (filters.section) {
-        const hasSection = u.students.some(
-          (std) => std.section.toUpperCase() === filters.section.toUpperCase()
-        );
-        if (!hasSection) return false;
-      }
-
-      return true;
-    });
-  }, [users, filters]);
-
-  // Statistics
-  const stats = useMemo(() => {
-    const total = users.length;
-    const active = users.filter((u) => u.status === 'ACTIVE' && u.loginEnabled).length;
-    const disabled = total - active;
-    const totalLinkedStudents = users.reduce((acc, u) => acc + (u.students?.length || 0), 0);
-    return { total, active, disabled, totalLinkedStudents };
-  }, [users]);
-
-  // Create Portal User Handler
-  const handleOpenCreateModal = () => {
-    setCreateFormData({
+    setParentFormData({
       studentUid: '',
+      studentId: '',
       email: '',
-      password: '',
-      confirmPassword: '',
+      phone: '',
+      name: '',
+      status: 'ACTIVE',
     });
-    setCreateFormError(null);
-    setShowPassword(false);
-    setIsCreateModalOpen(true);
+
+    setIsAddModalOpen(true);
   };
 
-  const handleStudentSelectInCreate = (stdUid: string) => {
-    const std = availableStudents.find((s) => s.uid === stdUid);
-    setCreateFormData((prev) => ({
-      ...prev,
-      studentUid: stdUid,
-      // Auto-suggest email if student has email or parent info
-      email: prev.email || (std?.email ? std.email : (std?.phone ? `parent.${std.phone}@gpacademy.edu.in` : '')),
-    }));
-    setCreateFormError(null);
-  };
-
-  const generateRandomPassword = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
-    let pwd = '';
-    for (let i = 0; i < 10; i++) {
-      pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+  // Student selection in Parent/Student form
+  const handleStudentSelectInAdd = (studentUid: string) => {
+    const std = allActiveStudents.find((s) => s.uid === studentUid);
+    if (std) {
+      setParentFormData((prev) => ({
+        ...prev,
+        studentUid: std.uid,
+        studentId: std.studentId,
+        name: prev.name || std.parentName || `Parent of ${std.name}`,
+        email: prev.email || (std.email ? std.email : (std.phone ? `parent.${std.phone}@gpacademy.in` : '')),
+        phone: prev.phone || std.phone || '',
+      }));
+    } else {
+      setParentFormData((prev) => ({
+        ...prev,
+        studentUid: '',
+        studentId: '',
+      }));
     }
-    setCreateFormData((prev) => ({
-      ...prev,
-      password: pwd,
-      confirmPassword: pwd,
-    }));
-    setShowPassword(true);
   };
 
-  const handleCreateSubmit = async (e: React.FormEvent) => {
+  // Submit Add Portal User
+  const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setCreateFormError(null);
+    setFormError(null);
+    setIsSubmitting(true);
 
-    if (!createFormData.studentUid) {
-      setCreateFormError('Please select an active student to link.');
-      return;
-    }
-    if (!createFormData.email.trim()) {
-      setCreateFormError('Please enter a valid portal email address.');
-      return;
-    }
-    if (!createFormData.password || createFormData.password.length < 6) {
-      setCreateFormError('Initial password must be at least 6 characters.');
-      return;
-    }
-    if (createFormData.password !== createFormData.confirmPassword) {
-      setCreateFormError('Passwords do not match.');
-      return;
-    }
-
-    setIsCreating(true);
     try {
-      const creatorUid = user?.uid || userProfile?.uid || 'admin';
-      const result = await portalUserService.createPortalUser(createFormData, creatorUid);
-      
-      setSuccessToast(`Portal user account created successfully for ${result.email}!`);
-      setIsCreateModalOpen(false);
+      const actorUid = user?.uid || userProfile?.uid || 'admin';
+      const actorEmail = user?.email || userProfile?.email || 'admin@gpacademy.in';
+
+      if (selectedUserType === 'TEACHER') {
+        if (!teacherFormData.name.trim()) throw new Error('Teacher name is required.');
+        if (!teacherFormData.email.trim()) throw new Error('Teacher email is required.');
+        if (!teacherFormData.phone.trim()) throw new Error('Phone number is required.');
+        if (teacherFormData.subjects.length === 0) throw new Error('Assign at least one subject.');
+        if (teacherFormData.assignedClasses.length === 0) throw new Error('Assign at least one class.');
+
+        const result = await portalUserService.createTeacherPortalUser(teacherFormData, actorUid, actorEmail);
+        setSuccessToast(`Teacher account created for ${result.email}! Password setup instructions dispatched.`);
+      } else {
+        if (!parentFormData.studentUid) throw new Error('Please select an enrolled student to link.');
+        if (!parentFormData.email.trim()) throw new Error('Valid email address is required.');
+        if (!parentFormData.name.trim()) throw new Error('Parent / Guardian name is required.');
+
+        const result = await portalUserService.createParentStudentPortalUser(parentFormData, actorUid, actorEmail);
+        setSuccessToast(`Parent/Student account created for ${result.email}! Password setup email dispatched.`);
+      }
+
+      setIsAddModalOpen(false);
       await loadData(true);
     } catch (err: any) {
-      console.error('Failed to create portal user:', err);
-      setCreateFormError(err.message || 'Failed to create portal user.');
+      console.error('Error creating portal user:', err);
+      setFormError(err.message || 'Failed to create user account.');
     } finally {
-      setIsCreating(false);
+      setIsSubmitting(false);
     }
   };
 
-  // Link Student Handler
-  const handleOpenLinkModal = (userItem: PortalUserWithStudents) => {
-    setSelectedUser(userItem);
-    setSelectedStudentToLink('');
-    setIsLinkModalOpen(true);
+  // Open Edit Modal
+  const handleOpenEditModal = (u: UnifiedPortalUser) => {
+    setSelectedUser(u);
+    setFormError(null);
+
+    if (u.userType === 'TEACHER') {
+      setEditTeacherData({
+        name: u.displayName || '',
+        phone: u.phone || '',
+        alternatePhone: u.alternatePhone || '',
+        teacherId: u.teacherId || '',
+        subjects: u.subjects || [],
+        assignedClasses: u.assignedClasses || [],
+        assignedSections: u.assignedSections || [],
+        qualification: u.qualification || '',
+        status: u.status || 'ACTIVE',
+      });
+    } else {
+      const linkedUid = u.students[0]?.uid || (u.linkedStudents && u.linkedStudents[0]) || '';
+      const linkedId = u.students[0]?.studentId || (u.linkedStudentIds && u.linkedStudentIds[0]) || '';
+      setEditParentData({
+        name: u.displayName || '',
+        phone: u.phone || '',
+        studentUid: linkedUid,
+        studentId: linkedId,
+        status: u.status || 'ACTIVE',
+      });
+    }
+
+    setIsEditModalOpen(true);
   };
 
-  const handleLinkSubmit = async (e: React.FormEvent) => {
+  // Submit Edit User
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedUser || !selectedStudentToLink) return;
-
-    setIsActionLoading(true);
-    try {
-      const adminUid = user?.uid || userProfile?.uid || 'admin';
-      await portalUserService.linkStudent(selectedUser.uid, selectedStudentToLink, adminUid);
-      setSuccessToast('Student successfully linked to portal account.');
-      setIsLinkModalOpen(false);
-      await loadData(true);
-    } catch (err: any) {
-      alert(err.message || 'Failed to link student.');
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
-
-  // Unlink Student Handler
-  const handleOpenUnlinkConfirm = (userItem: PortalUserWithStudents, std: Student) => {
-    setSelectedUser(userItem);
-    setSelectedStudentToUnlink(std);
-    setIsUnlinkConfirmOpen(true);
-  };
-
-  const handleUnlinkConfirm = async () => {
-    if (!selectedUser || !selectedStudentToUnlink) return;
-
-    setIsActionLoading(true);
-    try {
-      await portalUserService.unlinkStudent(
-        selectedUser.uid,
-        selectedStudentToUnlink.uid,
-        selectedStudentToUnlink.studentId
-      );
-      setSuccessToast(`Student ${selectedStudentToUnlink.name} unlinked from portal account.`);
-      setIsUnlinkConfirmOpen(false);
-      setSelectedStudentToUnlink(null);
-      await loadData(true);
-    } catch (err: any) {
-      alert(err.message || 'Failed to unlink student.');
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
-
-  // Toggle Login Status Handler
-  const handleOpenToggleLogin = (userItem: PortalUserWithStudents) => {
-    setSelectedUser(userItem);
-    setIsToggleLoginConfirmOpen(true);
-  };
-
-  const handleToggleLoginConfirm = async () => {
     if (!selectedUser) return;
-    const newStatus = !selectedUser.loginEnabled;
+    setFormError(null);
+    setIsSubmitting(true);
 
-    setIsActionLoading(true);
     try {
-      await portalUserService.setLoginEnabled(selectedUser.uid, newStatus);
-      setSuccessToast(
-        `Portal login access has been ${newStatus ? 'ENABLED' : 'DISABLED'} for ${selectedUser.email}.`
-      );
-      setIsToggleLoginConfirmOpen(false);
+      const actorUid = user?.uid || userProfile?.uid || 'admin';
+      const actorEmail = user?.email || userProfile?.email || 'admin@gpacademy.in';
+
+      if (selectedUser.userType === 'TEACHER') {
+        if (!editTeacherData.name.trim()) throw new Error('Teacher name is required.');
+        if (!editTeacherData.phone.trim()) throw new Error('Phone number is required.');
+        if (editTeacherData.subjects.length === 0) throw new Error('Select at least one subject.');
+        if (editTeacherData.assignedClasses.length === 0) throw new Error('Select at least one class.');
+
+        await portalUserService.updateTeacherAssignments(
+          {
+            uid: selectedUser.uid,
+            teacherId: editTeacherData.teacherId,
+            name: editTeacherData.name,
+            phone: editTeacherData.phone,
+            alternatePhone: editTeacherData.alternatePhone,
+            subjects: editTeacherData.subjects,
+            assignedClasses: editTeacherData.assignedClasses,
+            assignedSections: editTeacherData.assignedSections,
+            qualification: editTeacherData.qualification,
+            status: editTeacherData.status,
+          },
+          actorUid,
+          actorEmail
+        );
+
+        setSuccessToast(`Faculty profile and assignments updated for ${selectedUser.displayName}.`);
+      } else {
+        if (!editParentData.name.trim()) throw new Error('Parent/Guardian name is required.');
+        if (!editParentData.studentUid) throw new Error('Linked student is required.');
+
+        await portalUserService.updateParentStudent(
+          {
+            uid: selectedUser.uid,
+            name: editParentData.name,
+            phone: editParentData.phone,
+            studentUid: editParentData.studentUid,
+            studentId: editParentData.studentId,
+            status: editParentData.status,
+          },
+          actorUid,
+          actorEmail
+        );
+
+        setSuccessToast(`Parent/Student account updated for ${selectedUser.displayName}.`);
+      }
+
+      setIsEditModalOpen(false);
       await loadData(true);
     } catch (err: any) {
-      alert(err.message || 'Failed to update login status.');
+      console.error('Error updating portal user:', err);
+      setFormError(err.message || 'Failed to update account.');
     } finally {
-      setIsActionLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  // Password Reset Handler
-  const handleSendPasswordReset = async (userItem: PortalUserWithStudents) => {
-    const confirmSend = window.confirm(
-      `Send a secure password reset email to ${userItem.email}?`
-    );
-    if (!confirmSend) return;
+  // Open Status Toggle Confirm
+  const handleOpenToggleStatus = (u: UnifiedPortalUser) => {
+    setSelectedUser(u);
+    setIsToggleStatusModalOpen(true);
+  };
+
+  // Confirm Status Toggle
+  const handleToggleStatusConfirm = async () => {
+    if (!selectedUser) return;
+    setIsSubmitting(true);
 
     try {
-      await portalUserService.sendPasswordReset(userItem.email);
-      setSuccessToast(`Password reset link has been dispatched to ${userItem.email}.`);
+      const nextStatus = selectedUser.status === 'ACTIVE' ? 'DISABLED' : 'ACTIVE';
+      const actorUid = user?.uid || userProfile?.uid || 'admin';
+      const actorEmail = user?.email || userProfile?.email || 'admin@gpacademy.in';
+
+      await portalUserService.toggleUnifiedUserStatus(
+        selectedUser.uid,
+        selectedUser.userType,
+        nextStatus,
+        actorUid,
+        actorEmail
+      );
+
+      setSuccessToast(
+        `Account status for ${selectedUser.displayName} has been set to ${nextStatus}.`
+      );
+      setIsToggleStatusModalOpen(false);
+      await loadData(true);
+    } catch (err: any) {
+      alert(err.message || 'Failed to change account status.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Send Password Reset
+  const handleSendPasswordReset = async (u: UnifiedPortalUser) => {
+    if (!confirm(`Send official Firebase password setup / reset email to ${u.email}?`)) {
+      return;
+    }
+
+    try {
+      const actorUid = user?.uid || userProfile?.uid || 'admin';
+      const actorEmail = user?.email || userProfile?.email || 'admin@gpacademy.in';
+
+      const msg = await portalUserService.sendUnifiedPasswordReset(
+        u.email,
+        u.uid,
+        u.userType,
+        actorUid,
+        actorEmail
+      );
+      setSuccessToast(msg);
     } catch (err: any) {
       alert(err.message || 'Failed to send password reset email.');
     }
   };
 
+  // Copy Email Helper
   const handleCopyEmail = (email: string) => {
     navigator.clipboard.writeText(email);
     setCopiedEmail(email);
     setTimeout(() => setCopiedEmail(null), 2000);
   };
 
-  // View Details Modal
-  const handleOpenDetailModal = (userItem: PortalUserWithStudents) => {
-    setSelectedUser(userItem);
+  // Open Details Modal
+  const handleOpenDetailModal = (u: UnifiedPortalUser) => {
+    setSelectedUser(u);
     setIsDetailModalOpen(true);
   };
 
-  // Non-admin guard
-  if (!isAdmin) {
-    return (
-      <div className="p-8 max-w-4xl mx-auto font-sans">
-        <div className="bg-red-50 border border-red-200 rounded-3xl p-8 text-center space-y-4">
-          <div className="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto">
-            <ShieldAlert className="w-8 h-8" />
-          </div>
-          <h2 className="text-xl font-black text-[#001c46]">Access Restricted</h2>
-          <p className="text-sm text-gray-600 max-w-md mx-auto">
-            Portal User Management is strictly restricted to authorized Super Administrators and Administrators.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // Filtered Users
+  const filteredUsers = useMemo(() => {
+    return users.filter((u) => {
+      const search = searchQuery.toLowerCase().trim();
+
+      // Search matching
+      if (search) {
+        const nameMatches = (u.displayName || '').toLowerCase().includes(search);
+        const emailMatches = (u.email || '').toLowerCase().includes(search);
+        const teacherIdMatches = (u.teacherId || '').toLowerCase().includes(search);
+        const studentMatches = (u.students || []).some(
+          (s) =>
+            s.name.toLowerCase().includes(search) ||
+            s.studentId.toLowerCase().includes(search) ||
+            s.className.toLowerCase().includes(search) ||
+            s.section.toLowerCase().includes(search)
+        );
+
+        if (!nameMatches && !emailMatches && !teacherIdMatches && !studentMatches) {
+          return false;
+        }
+      }
+
+      // User Type filter
+      if (userTypeFilter !== 'ALL' && u.userType !== userTypeFilter) {
+        return false;
+      }
+
+      // Account Status filter
+      if (accountStatusFilter !== 'ALL' && u.status !== accountStatusFilter) {
+        return false;
+      }
+
+      // Class filter
+      if (classFilter) {
+        if (u.userType === 'TEACHER') {
+          if (!u.assignedClasses?.includes(classFilter)) return false;
+        } else {
+          const hasClass = (u.students || []).some((s) => s.className === classFilter);
+          if (!hasClass) return false;
+        }
+      }
+
+      // Section filter
+      if (sectionFilter) {
+        if (u.userType === 'TEACHER') {
+          if (!u.assignedSections?.includes(sectionFilter)) return false;
+        } else {
+          const hasSection = (u.students || []).some(
+            (s) => s.section.toUpperCase() === sectionFilter.toUpperCase()
+          );
+          if (!hasSection) return false;
+        }
+      }
+
+      return true;
+    });
+  }, [users, searchQuery, userTypeFilter, accountStatusFilter, classFilter, sectionFilter]);
+
+  // Statistics
+  const stats = useMemo(() => {
+    const total = users.length;
+    const teachers = users.filter((u) => u.userType === 'TEACHER').length;
+    const parents = users.filter((u) => u.userType === 'PARENT_STUDENT').length;
+    const active = users.filter((u) => u.status === 'ACTIVE').length;
+    const disabled = users.filter((u) => u.status === 'DISABLED').length;
+    return { total, teachers, parents, active, disabled };
+  }, [users]);
 
   return (
-    <div className="space-y-6 font-sans pb-12">
+    <div className="space-y-6">
       {/* Toast Notification */}
       {successToast && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#001c46] text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20 animate-in fade-in slide-in-from-bottom-4">
-          <CheckCircle2 className="w-5 h-5 text-[#FFC907] shrink-0" />
-          <span className="text-xs font-bold">{successToast}</span>
+        <div className="fixed top-5 right-5 z-50 bg-emerald-700 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-bold animate-in fade-in slide-in-from-top-3">
+          <CheckCircle2 className="w-4 h-4 text-[#FFC907]" />
+          <span>{successToast}</span>
         </div>
       )}
 
-      {/* Header & Primary Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xs">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-[#001c46] text-[#FFC907] flex items-center justify-center shadow-xs">
-              <KeyRound className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-xl font-black text-[#001c46] tracking-tight">
-                Portal User Management
-              </h1>
-              <p className="text-xs text-gray-500 font-medium">
-                Manage combined student and parent portal credentials, student links, and access controls.
-              </p>
-            </div>
+      {/* Header Section */}
+      <div className="bg-white p-6 rounded-3xl border border-gray-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-[#001c46] text-[#FFC907] flex items-center justify-center font-bold shadow-md shadow-blue-950/10">
+            <KeyRound className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-xl font-black text-[#001c46] tracking-tight">
+              Portal Users
+            </h2>
+            <p className="text-xs text-gray-500 font-medium">
+              Centralized account management for Faculty Teachers and Enrolled Parent/Student accounts.
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             type="button"
             onClick={() => loadData(true)}
-            disabled={refreshing}
-            className="p-3 rounded-2xl border border-gray-200 hover:bg-gray-50 text-gray-700 transition-colors cursor-pointer disabled:opacity-50"
-            title="Refresh list"
+            disabled={refreshing || loading}
+            className="p-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-100 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+            title="Refresh portal users"
           >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-[#001c46]' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
           </button>
 
           <button
             type="button"
-            onClick={handleOpenCreateModal}
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#001c46] text-[#FFC907] hover:bg-[#002866] text-xs font-extrabold uppercase tracking-wider transition-all duration-200 shadow-md active:scale-95 cursor-pointer whitespace-nowrap"
+            onClick={handleOpenAddModal}
+            className="px-5 py-2.5 bg-[#001c46] text-[#FFC907] hover:bg-[#002866] rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all transform active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Create Portal User</span>
+            <span>Add Portal User</span>
           </button>
         </div>
       </div>
 
-      {/* Stats Cluster */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
         <div className="bg-white p-5 rounded-3xl border border-gray-200/80 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-              Total Portal Accounts
+            <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">
+              Total Users
             </span>
             <Users className="w-4 h-4 text-[#001c46]" />
           </div>
@@ -458,7 +578,31 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
 
         <div className="bg-white p-5 rounded-3xl border border-gray-200/80 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+            <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">
+              Faculty / Teachers
+            </span>
+            <GraduationCap className="w-4 h-4 text-indigo-600" />
+          </div>
+          <div className="text-2xl font-black text-indigo-600 mt-2">
+            {stats.teachers}
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-3xl border border-gray-200/80 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">
+              Parent / Student
+            </span>
+            <UserCheck className="w-4 h-4 text-blue-600" />
+          </div>
+          <div className="text-2xl font-black text-blue-600 mt-2">
+            {stats.parents}
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-3xl border border-gray-200/80 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">
               Active Accounts
             </span>
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
@@ -470,25 +614,13 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
 
         <div className="bg-white p-5 rounded-3xl border border-gray-200/80 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+            <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">
               Disabled Accounts
             </span>
             <XCircle className="w-4 h-4 text-red-500" />
           </div>
           <div className="text-2xl font-black text-red-600 mt-2">
             {stats.disabled}
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-3xl border border-gray-200/80 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-              Linked Students
-            </span>
-            <Link2 className="w-4 h-4 text-blue-600" />
-          </div>
-          <div className="text-2xl font-black text-blue-600 mt-2">
-            {stats.totalLinkedStudents}
           </div>
         </div>
       </div>
@@ -501,14 +633,14 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              value={filters.searchQuery}
-              onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
-              placeholder="Search by student name, ID, class, or portal email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by User Name, Email, Student ID, Teacher ID, Class..."
               className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#001c46] focus:bg-white transition-all"
             />
-            {filters.searchQuery && (
+            {searchQuery && (
               <button
-                onClick={() => setFilters({ ...filters, searchQuery: '' })}
+                onClick={() => setSearchQuery('')}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs font-bold"
               >
                 ✕
@@ -516,32 +648,32 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
             )}
           </div>
 
-          {/* Account Status Filter */}
+          {/* User Type Filter */}
           <select
-            value={filters.accountStatus}
-            onChange={(e) => setFilters({ ...filters, accountStatus: e.target.value as any })}
+            value={userTypeFilter}
+            onChange={(e) => setUserTypeFilter(e.target.value as any)}
             className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#001c46] focus:bg-white"
           >
-            <option value="ALL">All Account Status</option>
+            <option value="ALL">All User Types</option>
+            <option value="TEACHER">Faculty / Teacher</option>
+            <option value="PARENT_STUDENT">Parent / Student</option>
+          </select>
+
+          {/* Account Status Filter */}
+          <select
+            value={accountStatusFilter}
+            onChange={(e) => setAccountStatusFilter(e.target.value as any)}
+            className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#001c46] focus:bg-white"
+          >
+            <option value="ALL">All Status</option>
             <option value="ACTIVE">Status: ACTIVE</option>
             <option value="DISABLED">Status: DISABLED</option>
           </select>
 
-          {/* Login Status Filter */}
-          <select
-            value={filters.loginStatus}
-            onChange={(e) => setFilters({ ...filters, loginStatus: e.target.value as any })}
-            className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#001c46] focus:bg-white"
-          >
-            <option value="ALL">All Login Status</option>
-            <option value="ENABLED">Login: ENABLED</option>
-            <option value="DISABLED">Login: DISABLED</option>
-          </select>
-
           {/* Class Filter */}
           <select
-            value={filters.className}
-            onChange={(e) => setFilters({ ...filters, className: e.target.value })}
+            value={classFilter}
+            onChange={(e) => setClassFilter(e.target.value)}
             className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#001c46] focus:bg-white"
           >
             <option value="">All Classes</option>
@@ -554,8 +686,8 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
 
           {/* Section Filter */}
           <select
-            value={filters.section}
-            onChange={(e) => setFilters({ ...filters, section: e.target.value })}
+            value={sectionFilter}
+            onChange={(e) => setSectionFilter(e.target.value)}
             className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#001c46] focus:bg-white"
           >
             <option value="">All Sections</option>
@@ -566,21 +698,19 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
           </select>
 
           {/* Reset Filters */}
-          {(filters.searchQuery ||
-            filters.accountStatus !== 'ALL' ||
-            filters.loginStatus !== 'ALL' ||
-            filters.className ||
-            filters.section) && (
+          {(searchQuery ||
+            userTypeFilter !== 'ALL' ||
+            accountStatusFilter !== 'ALL' ||
+            classFilter ||
+            sectionFilter) && (
             <button
-              onClick={() =>
-                setFilters({
-                  searchQuery: '',
-                  accountStatus: 'ALL',
-                  loginStatus: 'ALL',
-                  className: '',
-                  section: '',
-                })
-              }
+              onClick={() => {
+                setSearchQuery('');
+                setUserTypeFilter('ALL');
+                setAccountStatusFilter('ALL');
+                setClassFilter('');
+                setSectionFilter('');
+              }}
               className="px-3.5 py-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-100 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -590,13 +720,13 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
         </div>
       </div>
 
-      {/* Main Table / Card Content */}
+      {/* Main Table / Content */}
       <div className="bg-white rounded-3xl border border-gray-200/80 shadow-xs overflow-hidden">
         {loading ? (
           <div className="py-20 text-center space-y-3">
             <Loader2 className="w-8 h-8 text-[#001c46] animate-spin mx-auto" />
             <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">
-              Loading Portal Users...
+              Loading Centralized Portal Users...
             </p>
           </div>
         ) : error ? (
@@ -619,18 +749,18 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
               <h3 className="text-base font-black text-[#001c46]">No Portal Users Found</h3>
               <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
                 {users.length === 0
-                  ? 'No portal accounts have been created yet. Click "+ Create Portal User" to register credentials for a student.'
-                  : 'No portal users match your search and filter criteria.'}
+                  ? 'No portal accounts exist yet. Click "+ Add Portal User" to create credentials for Faculty or Parent/Student.'
+                  : 'No users match your search and filter criteria.'}
               </p>
             </div>
             {users.length === 0 && (
               <button
                 type="button"
-                onClick={handleOpenCreateModal}
+                onClick={handleOpenAddModal}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#001c46] text-[#FFC907] text-xs font-bold cursor-pointer hover:bg-[#002866]"
               >
                 <Plus className="w-4 h-4" />
-                <span>+ Create First Portal User</span>
+                <span>+ Add First Portal User</span>
               </button>
             )}
           </div>
@@ -641,83 +771,72 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50/70 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider">
-                    <th className="py-4 px-5">Student Name</th>
-                    <th className="py-4 px-4">Student ID</th>
-                    <th className="py-4 px-4">Class</th>
-                    <th className="py-4 px-4">Section</th>
-                    <th className="py-4 px-5">Portal Email</th>
+                    <th className="py-4 px-5">User Name</th>
+                    <th className="py-4 px-5">Email</th>
+                    <th className="py-4 px-4">User Type</th>
+                    <th className="py-4 px-4">Linked Student</th>
+                    <th className="py-4 px-4">Teacher ID</th>
                     <th className="py-4 px-4">Account Status</th>
-                    <th className="py-4 px-4">Login Status</th>
                     <th className="py-4 px-4">Created Date</th>
                     <th className="py-4 px-5 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-xs">
-                  {filteredUsers.map((userItem) => {
-                    const primaryStd = userItem.primaryStudent;
-                    const multiCount = userItem.students.length;
-                    const isLoginEnabled = userItem.loginEnabled;
+                  {filteredUsers.map((u) => {
+                    const isTeacher = u.userType === 'TEACHER';
+                    const primaryStd = u.primaryStudent || (u.students && u.students[0]);
+                    const multiStudents = (u.students || []).length;
 
                     return (
                       <tr
-                        key={userItem.uid}
+                        key={u.uid}
                         className="hover:bg-blue-50/30 transition-colors group cursor-pointer"
-                        onClick={() => handleOpenDetailModal(userItem)}
+                        onClick={() => handleOpenDetailModal(u)}
                       >
-                        {/* Student Name */}
+                        {/* User Name */}
                         <td className="py-4 px-5">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-xl bg-blue-100 text-[#001c46] font-black flex items-center justify-center text-xs shrink-0">
-                              {(primaryStd?.name || userItem.displayName || 'U').charAt(0)}
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-9 h-9 rounded-xl font-black flex items-center justify-center text-xs shrink-0 ${
+                                isTeacher
+                                  ? 'bg-indigo-100 text-indigo-800'
+                                  : 'bg-blue-100 text-blue-800'
+                              }`}
+                            >
+                              {isTeacher ? (
+                                <GraduationCap className="w-4 h-4" />
+                              ) : (
+                                (u.displayName || 'U').charAt(0)
+                              )}
                             </div>
                             <div>
                               <div className="font-bold text-[#001c46] group-hover:text-blue-700 transition-colors">
-                                {primaryStd ? primaryStd.name : userItem.displayName}
+                                {u.displayName}
                               </div>
-                              {multiCount > 1 && (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-md mt-0.5">
-                                  <Users className="w-2.5 h-2.5" />
-                                  +{multiCount - 1} linked
-                                </span>
-                              )}
-                              {multiCount === 0 && (
-                                <span className="text-[10px] text-amber-600 font-bold">
-                                  No linked student
-                                </span>
+                              {u.phone && (
+                                <div className="text-[11px] text-gray-400 flex items-center gap-1 mt-0.5">
+                                  <Phone className="w-3 h-3" />
+                                  <span>{u.phone}</span>
+                                </div>
                               )}
                             </div>
                           </div>
                         </td>
 
-                        {/* Student ID */}
-                        <td className="py-4 px-4 font-mono font-bold text-gray-700">
-                          {primaryStd?.studentId || '—'}
-                        </td>
-
-                        {/* Class */}
-                        <td className="py-4 px-4 font-bold text-gray-800">
-                          {primaryStd?.className || '—'}
-                        </td>
-
-                        {/* Section */}
-                        <td className="py-4 px-4 font-bold text-gray-800">
-                          {primaryStd?.section || '—'}
-                        </td>
-
-                        {/* Portal Email */}
+                        {/* Email */}
                         <td className="py-4 px-5">
                           <div className="flex items-center gap-1.5">
-                            <span className="font-medium text-gray-700">{userItem.email}</span>
+                            <span className="font-medium text-gray-700">{u.email}</span>
                             <button
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleCopyEmail(userItem.email);
+                                handleCopyEmail(u.email);
                               }}
                               className="p-1 text-gray-400 hover:text-[#001c46] transition-colors rounded-md hover:bg-gray-100"
                               title="Copy Email"
                             >
-                              {copiedEmail === userItem.email ? (
+                              {copiedEmail === u.email ? (
                                 <Check className="w-3.5 h-3.5 text-emerald-600" />
                               ) : (
                                 <Copy className="w-3.5 h-3.5" />
@@ -726,31 +845,70 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
                           </div>
                         </td>
 
-                        {/* Account Status */}
+                        {/* User Type */}
                         <td className="py-4 px-4">
-                          {userItem.status === 'ACTIVE' ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                              Active
+                          {isTeacher ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
+                              <GraduationCap className="w-3 h-3 text-indigo-600" />
+                              Teacher
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-red-50 text-red-700 border border-red-200">
-                              <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                              Disabled
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+                              <UserCheck className="w-3 h-3 text-blue-600" />
+                              Parent/Student
                             </span>
                           )}
                         </td>
 
-                        {/* Login Status */}
+                        {/* Linked Student */}
                         <td className="py-4 px-4">
-                          {isLoginEnabled ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
-                              <Unlock className="w-2.5 h-2.5 text-blue-600" />
-                              Enabled
+                          {!isTeacher ? (
+                            primaryStd ? (
+                              <div>
+                                <div className="font-bold text-[#001c46]">
+                                  {primaryStd.name}
+                                </div>
+                                <div className="text-[11px] text-gray-500 font-mono">
+                                  {primaryStd.studentId} • {primaryStd.className} ({primaryStd.section})
+                                </div>
+                                {multiStudents > 1 && (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-md mt-0.5">
+                                    <Users className="w-2.5 h-2.5" />
+                                    +{multiStudents - 1} linked
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-amber-600 font-bold text-[11px]">
+                                No student linked
+                              </span>
+                            )
+                          ) : (
+                            <span className="text-gray-400 font-bold">—</span>
+                          )}
+                        </td>
+
+                        {/* Teacher ID */}
+                        <td className="py-4 px-4">
+                          {isTeacher ? (
+                            <span className="font-mono font-bold text-indigo-900 bg-indigo-50/80 px-2 py-1 rounded-md border border-indigo-100">
+                              {u.teacherId || 'Unassigned'}
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-gray-100 text-gray-700 border border-gray-300">
-                              <Lock className="w-2.5 h-2.5 text-gray-500" />
+                            <span className="text-gray-400 font-bold">—</span>
+                          )}
+                        </td>
+
+                        {/* Account Status */}
+                        <td className="py-4 px-4">
+                          {u.status === 'ACTIVE' ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                              Active
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-red-50 text-red-700 border border-red-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
                               Disabled
                             </span>
                           )}
@@ -758,8 +916,8 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
 
                         {/* Created Date */}
                         <td className="py-4 px-4 text-gray-500 text-[11px]">
-                          {userItem.createdAt
-                            ? new Date(userItem.createdAt).toLocaleDateString('en-IN', {
+                          {u.createdAt
+                            ? new Date(u.createdAt).toLocaleDateString('en-IN', {
                                 day: '2-digit',
                                 month: 'short',
                                 year: 'numeric',
@@ -775,40 +933,40 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
                           >
                             <button
                               type="button"
-                              onClick={() => handleOpenDetailModal(userItem)}
-                              className="p-1.5 text-gray-500 hover:text-[#001c46] hover:bg-gray-100 rounded-lg transition-colors"
-                              title="View Portal User Details"
+                              onClick={() => handleOpenDetailModal(u)}
+                              className="p-1.5 text-gray-500 hover:text-[#001c46] hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                              title="View Account Details"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
 
                             <button
                               type="button"
-                              onClick={() => handleOpenLinkModal(userItem)}
-                              className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="Link Student"
+                              onClick={() => handleOpenEditModal(u)}
+                              className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                              title={isTeacher ? 'Edit Teacher Assignments' : 'Edit Parent/Student Account'}
                             >
-                              <Link2 className="w-4 h-4" />
+                              <Edit3 className="w-4 h-4" />
                             </button>
 
                             <button
                               type="button"
-                              onClick={() => handleOpenToggleLogin(userItem)}
-                              className={`p-1.5 rounded-lg transition-colors ${
-                                isLoginEnabled
+                              onClick={() => handleOpenToggleStatus(u)}
+                              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                                u.status === 'ACTIVE'
                                   ? 'text-amber-600 hover:text-amber-800 hover:bg-amber-50'
                                   : 'text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50'
                               }`}
-                              title={isLoginEnabled ? 'Disable Portal Login' : 'Enable Portal Login'}
+                              title={u.status === 'ACTIVE' ? 'Disable Account' : 'Enable Account'}
                             >
-                              {isLoginEnabled ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                              {u.status === 'ACTIVE' ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
                             </button>
 
                             <button
                               type="button"
-                              onClick={() => handleSendPasswordReset(userItem)}
-                              className="p-1.5 text-gray-500 hover:text-[#001c46] hover:bg-gray-100 rounded-lg transition-colors"
-                              title="Send Password Reset Email"
+                              onClick={() => handleSendPasswordReset(u)}
+                              className="p-1.5 text-gray-500 hover:text-[#001c46] hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                              title="Send Firebase Password Setup / Reset Email"
                             >
                               <Send className="w-4 h-4" />
                             </button>
@@ -821,31 +979,49 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
               </table>
             </div>
 
-            {/* Mobile Cards */}
+            {/* Mobile Cards View */}
             <div className="block lg:hidden divide-y divide-gray-100">
-              {filteredUsers.map((userItem) => {
-                const primaryStd = userItem.primaryStudent;
-                const isLoginEnabled = userItem.loginEnabled;
+              {filteredUsers.map((u) => {
+                const isTeacher = u.userType === 'TEACHER';
+                const primaryStd = u.primaryStudent || (u.students && u.students[0]);
 
                 return (
                   <div
-                    key={userItem.uid}
-                    onClick={() => handleOpenDetailModal(userItem)}
+                    key={u.uid}
+                    onClick={() => handleOpenDetailModal(u)}
                     className="p-4 space-y-3 hover:bg-gray-50 transition-colors"
                   >
                     <div className="flex items-start justify-between">
-                      <div>
-                        <div className="font-bold text-[#001c46] text-sm">
-                          {primaryStd ? primaryStd.name : userItem.displayName}
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className={`w-9 h-9 rounded-xl font-bold flex items-center justify-center text-xs shrink-0 ${
+                            isTeacher ? 'bg-indigo-100 text-indigo-800' : 'bg-blue-100 text-blue-800'
+                          }`}
+                        >
+                          {isTeacher ? <GraduationCap className="w-4 h-4" /> : (u.displayName || 'U').charAt(0)}
                         </div>
-                        <div className="text-[11px] font-mono text-gray-500">
-                          ID: {primaryStd?.studentId || 'No ID'} • Class: {primaryStd?.className || '—'} (
-                          {primaryStd?.section || '—'})
+                        <div>
+                          <div className="font-bold text-[#001c46] text-sm">
+                            {u.displayName}
+                          </div>
+                          <div className="text-[11px] text-gray-500">
+                            {isTeacher ? `Faculty ID: ${u.teacherId || '—'}` : `Student: ${primaryStd?.name || '—'}`}
+                          </div>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-1.5">
-                        {userItem.status === 'ACTIVE' ? (
+                        {isTeacher ? (
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-indigo-50 text-indigo-700 uppercase">
+                            Teacher
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-blue-700 uppercase">
+                            Parent/Std
+                          </span>
+                        )}
+
+                        {u.status === 'ACTIVE' ? (
                           <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 uppercase">
                             Active
                           </span>
@@ -858,49 +1034,38 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
                     </div>
 
                     <div className="flex items-center justify-between text-xs text-gray-600 bg-gray-50 p-2.5 rounded-xl">
-                      <div className="truncate font-medium">{userItem.email}</div>
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                          isLoginEnabled
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-gray-200 text-gray-700'
-                        }`}
-                      >
-                        {isLoginEnabled ? 'Login ON' : 'Login OFF'}
-                      </span>
+                      <div className="truncate font-medium">{u.email}</div>
+                      <div className="text-[10px] text-gray-400 font-mono shrink-0 ml-2">
+                        {u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '—'}
+                      </div>
                     </div>
 
-                    {userItem.students.length > 1 && (
-                      <div className="text-[11px] text-indigo-600 font-bold">
-                        Linked to {userItem.students.length} students
-                      </div>
-                    )}
-
+                    {/* Action buttons */}
                     <div
                       className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <button
                         type="button"
-                        onClick={() => handleOpenLinkModal(userItem)}
+                        onClick={() => handleOpenEditModal(u)}
                         className="px-2.5 py-1 text-xs font-bold bg-blue-50 text-blue-700 rounded-lg"
                       >
-                        Link Child
+                        Edit
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleOpenToggleLogin(userItem)}
+                        onClick={() => handleOpenToggleStatus(u)}
                         className={`px-2.5 py-1 text-xs font-bold rounded-lg ${
-                          isLoginEnabled
+                          u.status === 'ACTIVE'
                             ? 'bg-amber-50 text-amber-700'
                             : 'bg-emerald-50 text-emerald-700'
                         }`}
                       >
-                        {isLoginEnabled ? 'Disable' : 'Enable'}
+                        {u.status === 'ACTIVE' ? 'Disable' : 'Enable'}
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleSendPasswordReset(userItem)}
+                        onClick={() => handleSendPasswordReset(u)}
                         className="px-2.5 py-1 text-xs font-bold bg-gray-100 text-gray-700 rounded-lg"
                       >
                         Reset Pwd
@@ -915,27 +1080,27 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
       </div>
 
       {/* ========================================================================= */}
-      {/* CREATE PORTAL USER MODAL                                                  */}
+      {/* ADD PORTAL USER MODAL (UNIFIED: TEACHER VS PARENT/STUDENT)                 */}
       {/* ========================================================================= */}
-      {isCreateModalOpen && (
+      {isAddModalOpen && (
         <div className="fixed inset-0 z-50 bg-[#001c46]/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95">
+          <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 max-h-[92vh] flex flex-col">
             {/* Modal Header */}
-            <div className="bg-[#001c46] text-white p-5 flex items-center justify-between">
+            <div className="bg-[#001c46] text-white p-5 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#FFC907] text-[#001c46] flex items-center justify-center font-bold">
-                  <KeyRound className="w-4 h-4" />
+                <div className="w-9 h-9 rounded-xl bg-[#FFC907] text-[#001c46] flex items-center justify-center font-bold">
+                  <KeyRound className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black tracking-tight">Create Portal User</h3>
+                  <h3 className="text-base font-black tracking-tight">Add Portal User</h3>
                   <p className="text-[11px] text-gray-300">
-                    Register institutional authentication credentials for an enrolled student.
+                    Create secure authentication credentials for Teacher or Parent/Student.
                   </p>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setIsCreateModalOpen(false)}
+                onClick={() => setIsAddModalOpen(false)}
                 className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10"
               >
                 ✕
@@ -943,157 +1108,709 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
             </div>
 
             {/* Modal Form */}
-            <form onSubmit={handleCreateSubmit} className="p-6 space-y-4">
-              {createFormError && (
+            <form onSubmit={handleAddSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
+              {formError && (
                 <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl text-xs flex items-start gap-2">
                   <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                  <span className="leading-snug">{createFormError}</span>
+                  <span className="leading-snug">{formError}</span>
                 </div>
               )}
 
-              {/* Step 1: Select Student */}
+              {/* Step 1: User Type Selector */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-[#001c46] uppercase tracking-wider">
-                  1. Select Enrolled Student <span className="text-red-500">*</span>
+                <label className="block text-xs font-black text-[#001c46] uppercase tracking-wider">
+                  1. Select User Type <span className="text-red-500">*</span>
                 </label>
-                <select
-                  value={createFormData.studentUid}
-                  onChange={(e) => handleStudentSelectInCreate(e.target.value)}
-                  required
-                  className="block w-full py-2.5 px-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#001c46]"
-                >
-                  <option value="">-- Choose active unlinked student --</option>
-                  {availableStudents.map((std) => (
-                    <option key={std.uid} value={std.uid}>
-                      {std.name} ({std.studentId}) — {std.className} {std.section}
-                    </option>
-                  ))}
-                </select>
-                {availableStudents.length === 0 && (
-                  <p className="text-[11px] text-amber-600 font-medium mt-1">
-                    Note: All active students currently have portal accounts assigned, or no active students exist.
-                  </p>
-                )}
-              </div>
-
-              {/* Selected Student Preview */}
-              {createFormData.studentUid && (
-                (() => {
-                  const s = availableStudents.find((st) => st.uid === createFormData.studentUid);
-                  if (!s) return null;
-                  return (
-                    <div className="bg-blue-50/70 border border-blue-200/80 p-3 rounded-xl text-xs text-[#001c46] space-y-1">
-                      <div className="font-bold flex justify-between">
-                        <span>{s.name} ({s.studentId})</span>
-                        <span className="text-blue-700 font-semibold">{s.board}</span>
-                      </div>
-                      <div className="text-[11px] text-gray-600">
-                        Class: <span className="font-medium">{s.className}</span> | Section: <span className="font-medium">{s.section}</span> | Parent: <span className="font-medium">{s.parentName}</span>
-                      </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedUserType('TEACHER')}
+                    className={`p-3.5 rounded-2xl border text-left flex items-center gap-3 transition-all cursor-pointer ${
+                      selectedUserType === 'TEACHER'
+                        ? 'border-indigo-600 bg-indigo-50/70 ring-2 ring-indigo-600/30'
+                        : 'border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold shrink-0 ${
+                        selectedUserType === 'TEACHER'
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-gray-100 text-gray-500'
+                      }`}
+                    >
+                      <GraduationCap className="w-5 h-5" />
                     </div>
-                  );
-                })()
+                    <div>
+                      <div className="font-black text-xs text-[#001c46]">Teacher / Faculty</div>
+                      <div className="text-[10px] text-gray-500">Access Teacher Panel (/teacher)</div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedUserType('PARENT_STUDENT')}
+                    className={`p-3.5 rounded-2xl border text-left flex items-center gap-3 transition-all cursor-pointer ${
+                      selectedUserType === 'PARENT_STUDENT'
+                        ? 'border-blue-600 bg-blue-50/70 ring-2 ring-blue-600/30'
+                        : 'border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold shrink-0 ${
+                        selectedUserType === 'PARENT_STUDENT'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-500'
+                      }`}
+                    >
+                      <UserCheck className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="font-black text-xs text-[#001c46]">Parent / Student</div>
+                      <div className="text-[10px] text-gray-500">Access Student Portal (/portal)</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* ============================================================== */}
+              {/* TEACHER SPECIFIC FIELDS                                         */}
+              {/* ============================================================== */}
+              {selectedUserType === 'TEACHER' && (
+                <div className="space-y-4 pt-2 border-t border-gray-100">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-gray-700">
+                        Teacher Full Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={teacherFormData.name}
+                        onChange={(e) => setTeacherFormData({ ...teacherFormData, name: e.target.value })}
+                        placeholder="e.g. Dr. Rajesh Sharma"
+                        className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:ring-2 focus:ring-[#001c46] focus:bg-white"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs font-bold text-gray-700">
+                          Teacher ID <span className="text-red-500">*</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const nextId = await portalUserService.generateNextTeacherId();
+                            setTeacherFormData({ ...teacherFormData, teacherId: nextId });
+                          }}
+                          className="text-[10px] text-blue-700 font-bold hover:underline"
+                        >
+                          Auto Generate
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        value={teacherFormData.teacherId}
+                        onChange={(e) => setTeacherFormData({ ...teacherFormData, teacherId: e.target.value })}
+                        placeholder="e.g. GP-T-2026-001"
+                        className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-mono font-bold text-gray-900 focus:ring-2 focus:ring-[#001c46] focus:bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-gray-700">
+                        Faculty Email Address <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={teacherFormData.email}
+                        onChange={(e) => setTeacherFormData({ ...teacherFormData, email: e.target.value })}
+                        placeholder="e.g. rajesh.teacher@gpacademy.in"
+                        className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:ring-2 focus:ring-[#001c46] focus:bg-white"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-gray-700">
+                        Phone Number <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={teacherFormData.phone}
+                        onChange={(e) => setTeacherFormData({ ...teacherFormData, phone: e.target.value })}
+                        placeholder="e.g. 9876543210"
+                        className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:ring-2 focus:ring-[#001c46] focus:bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Assigned Subjects */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-gray-700">
+                      Assigned Subjects <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-2 bg-gray-50 border border-gray-200 rounded-xl">
+                      {SUBJECT_OPTIONS.map((sub) => {
+                        const isSelected = teacherFormData.subjects.includes(sub);
+                        return (
+                          <button
+                            key={sub}
+                            type="button"
+                            onClick={() => {
+                              if (isSelected) {
+                                setTeacherFormData({
+                                  ...teacherFormData,
+                                  subjects: teacherFormData.subjects.filter((s) => s !== sub),
+                                });
+                              } else {
+                                setTeacherFormData({
+                                  ...teacherFormData,
+                                  subjects: [...teacherFormData.subjects, sub],
+                                });
+                              }
+                            }}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                              isSelected
+                                ? 'bg-indigo-600 text-white shadow-2xs'
+                                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
+                            }`}
+                          >
+                            {isSelected ? '✓ ' : ''}{sub}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Assigned Classes */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-gray-700">
+                      Assigned Classes <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex flex-wrap gap-1.5 p-2 bg-gray-50 border border-gray-200 rounded-xl">
+                      {CLASS_OPTIONS.map((c) => {
+                        const isSelected = teacherFormData.assignedClasses.includes(c);
+                        return (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => {
+                              if (isSelected) {
+                                setTeacherFormData({
+                                  ...teacherFormData,
+                                  assignedClasses: teacherFormData.assignedClasses.filter((cl) => cl !== c),
+                                });
+                              } else {
+                                setTeacherFormData({
+                                  ...teacherFormData,
+                                  assignedClasses: [...teacherFormData.assignedClasses, c],
+                                });
+                              }
+                            }}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                              isSelected
+                                ? 'bg-[#001c46] text-[#FFC907] shadow-2xs'
+                                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
+                            }`}
+                          >
+                            {isSelected ? '✓ ' : ''}{c}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Assigned Sections */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-gray-700">
+                      Assigned Sections
+                    </label>
+                    <div className="flex gap-2">
+                      {SECTION_OPTIONS.map((sec) => {
+                        const isSelected = (teacherFormData.assignedSections || []).includes(sec);
+                        return (
+                          <button
+                            key={sec}
+                            type="button"
+                            onClick={() => {
+                              const curr = teacherFormData.assignedSections || [];
+                              if (isSelected) {
+                                setTeacherFormData({
+                                  ...teacherFormData,
+                                  assignedSections: curr.filter((s) => s !== sec),
+                                });
+                              } else {
+                                setTeacherFormData({
+                                  ...teacherFormData,
+                                  assignedSections: [...curr, sec],
+                                });
+                              }
+                            }}
+                            className={`w-10 h-9 rounded-xl text-xs font-bold flex items-center justify-center transition-colors cursor-pointer ${
+                              isSelected
+                                ? 'bg-indigo-600 text-white font-black'
+                                : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
+                            }`}
+                          >
+                            {sec}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Account Status */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-gray-700">
+                      Initial Account Status
+                    </label>
+                    <select
+                      value={teacherFormData.status}
+                      onChange={(e) => setTeacherFormData({ ...teacherFormData, status: e.target.value as any })}
+                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#001c46] focus:bg-white"
+                    >
+                      <option value="ACTIVE">ACTIVE (Authorized to login)</option>
+                      <option value="DISABLED">DISABLED (Login blocked)</option>
+                    </select>
+                  </div>
+                </div>
               )}
 
-              {/* Step 2: Email */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-[#001c46] uppercase tracking-wider">
-                  2. Portal Email Address <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="email"
-                    required
-                    value={createFormData.email}
-                    onChange={(e) => setCreateFormData({ ...createFormData, email: e.target.value })}
-                    placeholder="e.g. parent.student@gpacademy.edu.in"
-                    className="block w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#001c46]"
-                  />
-                </div>
-              </div>
+              {/* ============================================================== */}
+              {/* PARENT/STUDENT SPECIFIC FIELDS                                 */}
+              {/* ============================================================== */}
+              {selectedUserType === 'PARENT_STUDENT' && (
+                <div className="space-y-4 pt-2 border-t border-gray-100">
+                  {/* Select Enrolled Student */}
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-[#001c46]">
+                      Link Enrolled Student <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      required
+                      value={parentFormData.studentUid}
+                      onChange={(e) => handleStudentSelectInAdd(e.target.value)}
+                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:ring-2 focus:ring-[#001c46] focus:bg-white"
+                    >
+                      <option value="">-- Choose active enrolled student --</option>
+                      {allActiveStudents.map((std) => (
+                        <option key={std.uid} value={std.uid}>
+                          {std.name} ({std.studentId}) — {std.className} {std.section}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              {/* Step 3: Password */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-bold text-[#001c46] uppercase tracking-wider">
-                    3. Initial Password <span className="text-red-500">*</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={generateRandomPassword}
-                    className="text-[11px] font-bold text-blue-700 hover:underline inline-flex items-center gap-1"
-                  >
-                    <Sparkles className="w-3 h-3" />
-                    Auto-Generate Password
-                  </button>
-                </div>
-                <div className="relative">
-                  <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={createFormData.password}
-                    onChange={(e) =>
-                      setCreateFormData({ ...createFormData, password: e.target.value })
-                    }
-                    placeholder="Min 6 characters"
-                    className="block w-full pl-9 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#001c46]"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
+                  {/* Student Details Preview */}
+                  {parentFormData.studentUid && (() => {
+                    const std = allActiveStudents.find((s) => s.uid === parentFormData.studentUid);
+                    if (!std) return null;
+                    return (
+                      <div className="bg-blue-50/70 border border-blue-200/80 p-3.5 rounded-2xl text-xs text-[#001c46] space-y-1">
+                        <div className="font-bold flex justify-between">
+                          <span>{std.name} (Student ID: {std.studentId})</span>
+                          <span className="text-blue-700 font-semibold">{std.board}</span>
+                        </div>
+                        <div className="text-[11px] text-gray-600 flex gap-3">
+                          <span>Class: <strong>{std.className}</strong></span>
+                          <span>Section: <strong>{std.section}</strong></span>
+                          <span>Roll: <strong>{std.rollNumber || '—'}</strong></span>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
-              {/* Confirm Password */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-[#001c46] uppercase tracking-wider">
-                  Confirm Password <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={createFormData.confirmPassword}
-                    onChange={(e) =>
-                      setCreateFormData({ ...createFormData, confirmPassword: e.target.value })
-                    }
-                    placeholder="Re-enter initial password"
-                    className="block w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#001c46]"
-                  />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-gray-700">
+                        Parent / Guardian Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={parentFormData.name}
+                        onChange={(e) => setParentFormData({ ...parentFormData, name: e.target.value })}
+                        placeholder="e.g. Ramesh Verma"
+                        className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:ring-2 focus:ring-[#001c46] focus:bg-white"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-gray-700">
+                        Phone Number
+                      </label>
+                      <input
+                        type="tel"
+                        value={parentFormData.phone}
+                        onChange={(e) => setParentFormData({ ...parentFormData, phone: e.target.value })}
+                        placeholder="e.g. 9876543210"
+                        className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:ring-2 focus:ring-[#001c46] focus:bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-gray-700">
+                      Portal Login Email <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <input
+                        type="email"
+                        required
+                        value={parentFormData.email}
+                        onChange={(e) => setParentFormData({ ...parentFormData, email: e.target.value })}
+                        placeholder="e.g. parent.student@gpacademy.in"
+                        className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:ring-2 focus:ring-[#001c46] focus:bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-gray-700">
+                      Initial Account Status
+                    </label>
+                    <select
+                      value={parentFormData.status}
+                      onChange={(e) => setParentFormData({ ...parentFormData, status: e.target.value as any })}
+                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#001c46] focus:bg-white"
+                    >
+                      <option value="ACTIVE">ACTIVE (Authorized to login)</option>
+                      <option value="DISABLED">DISABLED (Login blocked)</option>
+                    </select>
+                  </div>
                 </div>
+              )}
+
+              {/* Security & Password Notice */}
+              <div className="bg-amber-50/80 border border-amber-200/80 p-3.5 rounded-2xl text-xs text-amber-900 space-y-1">
+                <div className="font-bold flex items-center gap-1.5 text-amber-800">
+                  <Shield className="w-4 h-4 text-amber-600" />
+                  <span>Secure Firebase Authentication</span>
+                </div>
+                <p className="text-[11px] text-amber-800/90 leading-relaxed">
+                  Passwords are never stored in databases or local storage. An official Firebase password setup / reset email will be sent automatically to the provided address so the user can securely configure their password.
+                </p>
               </div>
 
               {/* Action Buttons */}
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
                 <button
                   type="button"
-                  onClick={() => setIsCreateModalOpen(false)}
+                  onClick={() => setIsAddModalOpen(false)}
                   className="px-4 py-2.5 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isCreating}
-                  className="px-5 py-2.5 bg-[#001c46] text-[#FFC907] hover:bg-[#002866] rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center gap-2 shadow-sm disabled:opacity-50 cursor-pointer"
+                  disabled={isSubmitting}
+                  className="px-5 py-2.5 bg-[#001c46] text-[#FFC907] hover:bg-[#002866] rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-sm disabled:opacity-50 cursor-pointer"
                 >
-                  {isCreating ? (
+                  {isSubmitting ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Creating...</span>
+                      <span>Creating Account...</span>
                     </>
                   ) : (
                     <>
                       <Plus className="w-4 h-4" />
-                      <span>Create Portal Account</span>
+                      <span>Create Portal User</span>
                     </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* EDIT MODAL (TEACHER ASSIGNMENTS OR PARENT/STUDENT LINK)                    */}
+      {/* ========================================================================= */}
+      {isEditModalOpen && selectedUser && (
+        <div className="fixed inset-0 z-50 bg-[#001c46]/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 max-h-[92vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="bg-[#001c46] text-white p-5 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#FFC907] text-[#001c46] flex items-center justify-center font-bold">
+                  <Edit3 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black tracking-tight">
+                    Edit {selectedUser.userType === 'TEACHER' ? 'Teacher Profile & Assignments' : 'Parent/Student Account'}
+                  </h3>
+                  <p className="text-[11px] text-gray-300">
+                    {selectedUser.email}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(false)}
+                className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleEditSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
+              {formError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl text-xs flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                  <span className="leading-snug">{formError}</span>
+                </div>
+              )}
+
+              {/* TEACHER EDIT FORM */}
+              {selectedUser.userType === 'TEACHER' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-gray-700">Teacher Name</label>
+                      <input
+                        type="text"
+                        required
+                        value={editTeacherData.name}
+                        onChange={(e) => setEditTeacherData({ ...editTeacherData, name: e.target.value })}
+                        className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:ring-2 focus:ring-[#001c46] focus:bg-white"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-gray-700">Teacher ID</label>
+                      <input
+                        type="text"
+                        value={editTeacherData.teacherId}
+                        onChange={(e) => setEditTeacherData({ ...editTeacherData, teacherId: e.target.value })}
+                        className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-mono font-bold text-gray-900 focus:ring-2 focus:ring-[#001c46] focus:bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-gray-700">Phone</label>
+                      <input
+                        type="tel"
+                        required
+                        value={editTeacherData.phone}
+                        onChange={(e) => setEditTeacherData({ ...editTeacherData, phone: e.target.value })}
+                        className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:ring-2 focus:ring-[#001c46] focus:bg-white"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-gray-700">Account Status</label>
+                      <select
+                        value={editTeacherData.status}
+                        onChange={(e) => setEditTeacherData({ ...editTeacherData, status: e.target.value as any })}
+                        className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#001c46] focus:bg-white"
+                      >
+                        <option value="ACTIVE">ACTIVE</option>
+                        <option value="DISABLED">DISABLED</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Subjects */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-gray-700">Assigned Subjects</label>
+                    <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-2 bg-gray-50 border border-gray-200 rounded-xl">
+                      {SUBJECT_OPTIONS.map((sub) => {
+                        const isSelected = editTeacherData.subjects.includes(sub);
+                        return (
+                          <button
+                            key={sub}
+                            type="button"
+                            onClick={() => {
+                              if (isSelected) {
+                                setEditTeacherData({
+                                  ...editTeacherData,
+                                  subjects: editTeacherData.subjects.filter((s) => s !== sub),
+                                });
+                              } else {
+                                setEditTeacherData({
+                                  ...editTeacherData,
+                                  subjects: [...editTeacherData.subjects, sub],
+                                });
+                              }
+                            }}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                              isSelected
+                                ? 'bg-indigo-600 text-white'
+                                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
+                            }`}
+                          >
+                            {isSelected ? '✓ ' : ''}{sub}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Classes */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-gray-700">Assigned Classes</label>
+                    <div className="flex flex-wrap gap-1.5 p-2 bg-gray-50 border border-gray-200 rounded-xl">
+                      {CLASS_OPTIONS.map((c) => {
+                        const isSelected = editTeacherData.assignedClasses.includes(c);
+                        return (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => {
+                              if (isSelected) {
+                                setEditTeacherData({
+                                  ...editTeacherData,
+                                  assignedClasses: editTeacherData.assignedClasses.filter((cl) => cl !== c),
+                                });
+                              } else {
+                                setEditTeacherData({
+                                  ...editTeacherData,
+                                  assignedClasses: [...editTeacherData.assignedClasses, c],
+                                });
+                              }
+                            }}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                              isSelected
+                                ? 'bg-[#001c46] text-[#FFC907]'
+                                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
+                            }`}
+                          >
+                            {isSelected ? '✓ ' : ''}{c}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Sections */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-gray-700">Assigned Sections</label>
+                    <div className="flex gap-2">
+                      {SECTION_OPTIONS.map((sec) => {
+                        const isSelected = editTeacherData.assignedSections.includes(sec);
+                        return (
+                          <button
+                            key={sec}
+                            type="button"
+                            onClick={() => {
+                              if (isSelected) {
+                                setEditTeacherData({
+                                  ...editTeacherData,
+                                  assignedSections: editTeacherData.assignedSections.filter((s) => s !== sec),
+                                });
+                              } else {
+                                setEditTeacherData({
+                                  ...editTeacherData,
+                                  assignedSections: [...editTeacherData.assignedSections, sec],
+                                });
+                              }
+                            }}
+                            className={`w-10 h-9 rounded-xl text-xs font-bold flex items-center justify-center transition-colors cursor-pointer ${
+                              isSelected
+                                ? 'bg-indigo-600 text-white font-black'
+                                : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
+                            }`}
+                          >
+                            {sec}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* PARENT/STUDENT EDIT FORM */}
+              {selectedUser.userType === 'PARENT_STUDENT' && (
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-gray-700">Linked Student</label>
+                    <select
+                      value={editParentData.studentUid}
+                      onChange={(e) => {
+                        const std = allActiveStudents.find((s) => s.uid === e.target.value);
+                        setEditParentData({
+                          ...editParentData,
+                          studentUid: e.target.value,
+                          studentId: std?.studentId || '',
+                        });
+                      }}
+                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:ring-2 focus:ring-[#001c46] focus:bg-white"
+                    >
+                      <option value="">-- Choose active enrolled student --</option>
+                      {allActiveStudents.map((std) => (
+                        <option key={std.uid} value={std.uid}>
+                          {std.name} ({std.studentId}) — {std.className} {std.section}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-gray-700">Parent / Guardian Name</label>
+                      <input
+                        type="text"
+                        required
+                        value={editParentData.name}
+                        onChange={(e) => setEditParentData({ ...editParentData, name: e.target.value })}
+                        className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:ring-2 focus:ring-[#001c46] focus:bg-white"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-gray-700">Phone</label>
+                      <input
+                        type="tel"
+                        value={editParentData.phone}
+                        onChange={(e) => setEditParentData({ ...editParentData, phone: e.target.value })}
+                        className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:ring-2 focus:ring-[#001c46] focus:bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-gray-700">Account Status</label>
+                    <select
+                      value={editParentData.status}
+                      onChange={(e) => setEditParentData({ ...editParentData, status: e.target.value as any })}
+                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 focus:ring-2 focus:ring-[#001c46] focus:bg-white"
+                    >
+                      <option value="ACTIVE">ACTIVE</option>
+                      <option value="DISABLED">DISABLED</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-4 py-2.5 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-5 py-2.5 bg-[#001c46] text-[#FFC907] hover:bg-[#002866] rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-sm disabled:opacity-50 cursor-pointer"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Saving Changes...</span>
+                    </>
+                  ) : (
+                    <span>Save Changes</span>
                   )}
                 </button>
               </div>
@@ -1111,11 +1828,30 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
             {/* Header */}
             <div className="bg-[#001c46] text-white p-5 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#FFC907] text-[#001c46] flex items-center justify-center font-black">
-                  {selectedUser.displayName.charAt(0)}
+                <div
+                  className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black ${
+                    selectedUser.userType === 'TEACHER' ? 'bg-indigo-600 text-white' : 'bg-[#FFC907] text-[#001c46]'
+                  }`}
+                >
+                  {selectedUser.userType === 'TEACHER' ? (
+                    <GraduationCap className="w-6 h-6" />
+                  ) : (
+                    selectedUser.displayName.charAt(0)
+                  )}
                 </div>
                 <div>
-                  <h3 className="text-base font-black">{selectedUser.displayName}</h3>
+                  <h3 className="text-base font-black flex items-center gap-2">
+                    <span>{selectedUser.displayName}</span>
+                    <span
+                      className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                        selectedUser.userType === 'TEACHER'
+                          ? 'bg-indigo-900/60 text-indigo-200'
+                          : 'bg-blue-900/60 text-blue-200'
+                      }`}
+                    >
+                      {selectedUser.userType === 'TEACHER' ? 'Faculty Teacher' : 'Parent / Student'}
+                    </span>
+                  </h3>
                   <p className="text-xs text-gray-300">{selectedUser.email}</p>
                 </div>
               </div>
@@ -1133,8 +1869,10 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
               {/* Account Meta Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-gray-50 p-4 rounded-2xl border border-gray-200">
                 <div>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase">Auth Role</span>
-                  <div className="font-mono font-bold text-[#001c46] mt-0.5">{selectedUser.role}</div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">User Type</span>
+                  <div className="font-bold text-[#001c46] mt-0.5">
+                    {selectedUser.userType === 'TEACHER' ? 'TEACHER' : 'PARENT / STUDENT'}
+                  </div>
                 </div>
                 <div>
                   <span className="text-[10px] font-bold text-gray-400 uppercase">Account Status</span>
@@ -1147,13 +1885,15 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
                   </div>
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase">Login Access</span>
-                  <div className="font-bold mt-0.5">
-                    {selectedUser.loginEnabled ? (
-                      <span className="text-blue-700">ENABLED</span>
-                    ) : (
-                      <span className="text-gray-600">DISABLED</span>
-                    )}
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">Teacher ID</span>
+                  <div className="font-mono font-bold text-indigo-900 mt-0.5">
+                    {selectedUser.teacherId || '—'}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">Contact Phone</span>
+                  <div className="text-gray-800 font-medium mt-0.5">
+                    {selectedUser.phone || '—'}
                   </div>
                 </div>
                 <div>
@@ -1166,7 +1906,13 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
                     })}
                   </div>
                 </div>
-                <div className="sm:col-span-2">
+                <div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">Target Panel</span>
+                  <div className="text-blue-700 font-bold mt-0.5">
+                    {selectedUser.userType === 'TEACHER' ? '/teacher' : '/portal'}
+                  </div>
+                </div>
+                <div className="sm:col-span-3">
                   <span className="text-[10px] font-bold text-gray-400 uppercase">Firebase Auth UID</span>
                   <div className="font-mono text-[11px] text-gray-600 truncate mt-0.5">
                     {selectedUser.uid}
@@ -1174,72 +1920,119 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
                 </div>
               </div>
 
-              {/* Linked Students Section */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
+              {/* Teacher Academic Assignments */}
+              {selectedUser.userType === 'TEACHER' && (
+                <div className="space-y-3">
                   <h4 className="text-sm font-black text-[#001c46] uppercase tracking-wide flex items-center gap-2">
-                    <Link2 className="w-4 h-4 text-blue-600" />
-                    <span>Linked Students ({selectedUser.students.length})</span>
+                    <BookOpen className="w-4 h-4 text-indigo-600" />
+                    <span>Academic Assignments</span>
                   </h4>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsDetailModalOpen(false);
-                      handleOpenLinkModal(selectedUser);
-                    }}
-                    className="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl font-bold text-xs flex items-center gap-1 cursor-pointer"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Link Another Student</span>
-                  </button>
-                </div>
+                  <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Assigned Subjects</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(selectedUser.subjects || []).length > 0 ? (
+                          selectedUser.subjects?.map((s) => (
+                            <span key={s} className="px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg font-bold text-xs">
+                              {s}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-gray-400 italic">None assigned</span>
+                        )}
+                      </div>
+                    </div>
 
-                {selectedUser.students.length === 0 ? (
-                  <div className="p-6 text-center bg-gray-50 rounded-2xl border border-gray-200 text-gray-500">
-                    No student profiles linked to this portal user account.
+                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100">
+                      <div>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Assigned Classes</span>
+                        <div className="flex flex-wrap gap-1">
+                          {(selectedUser.assignedClasses || []).length > 0 ? (
+                            selectedUser.assignedClasses?.map((c) => (
+                              <span key={c} className="px-2 py-0.5 bg-gray-100 text-gray-800 rounded-md font-bold text-[11px]">
+                                {c}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-gray-400 italic">None</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Assigned Sections</span>
+                        <div className="flex flex-wrap gap-1">
+                          {(selectedUser.assignedSections || []).length > 0 ? (
+                            selectedUser.assignedSections?.map((sec) => (
+                              <span key={sec} className="w-6 h-6 flex items-center justify-center bg-indigo-100 text-indigo-800 rounded-md font-bold text-[11px]">
+                                {sec}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-gray-400 italic">All Sections</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                ) : (
-                  <div className="space-y-2.5">
-                    {selectedUser.students.map((std) => (
-                      <div
-                        key={std.uid}
-                        className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center justify-between shadow-2xs hover:border-blue-300 transition-colors"
-                      >
-                        <div className="space-y-1">
-                          <div className="font-black text-[#001c46] text-sm flex items-center gap-2">
-                            <span>{std.name}</span>
-                            <span className="font-mono text-xs font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
-                              {std.studentId}
-                            </span>
-                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
-                              {std.board}
-                            </span>
-                          </div>
-                          <div className="text-gray-600 text-[11px] flex gap-3">
-                            <span>Class: <strong className="text-gray-900">{std.className}</strong></span>
-                            <span>Section: <strong className="text-gray-900">{std.section}</strong></span>
-                            <span>Roll: <strong className="text-gray-900">{std.rollNumber || '—'}</strong></span>
-                            <span>Parent: <strong className="text-gray-900">{std.parentName}</strong></span>
+                </div>
+              )}
+
+              {/* Linked Students Section for Parent/Student */}
+              {selectedUser.userType === 'PARENT_STUDENT' && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-black text-[#001c46] uppercase tracking-wide flex items-center gap-2">
+                      <Link2 className="w-4 h-4 text-blue-600" />
+                      <span>Linked Students ({(selectedUser.students || []).length})</span>
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsDetailModalOpen(false);
+                        handleOpenEditModal(selectedUser);
+                      }}
+                      className="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl font-bold text-xs flex items-center gap-1 cursor-pointer"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                      <span>Change Link</span>
+                    </button>
+                  </div>
+
+                  {(selectedUser.students || []).length === 0 ? (
+                    <div className="p-6 text-center bg-gray-50 rounded-2xl border border-gray-200 text-gray-500">
+                      No student profiles linked to this portal user account.
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {selectedUser.students.map((std) => (
+                        <div
+                          key={std.uid}
+                          className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center justify-between shadow-2xs hover:border-blue-300 transition-colors"
+                        >
+                          <div className="space-y-1">
+                            <div className="font-black text-[#001c46] text-sm flex items-center gap-2">
+                              <span>{std.name}</span>
+                              <span className="font-mono text-xs font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
+                                {std.studentId}
+                              </span>
+                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                                {std.board}
+                              </span>
+                            </div>
+                            <div className="text-gray-600 text-[11px] flex gap-3">
+                              <span>Class: <strong className="text-gray-900">{std.className}</strong></span>
+                              <span>Section: <strong className="text-gray-900">{std.section}</strong></span>
+                              <span>Roll: <strong className="text-gray-900">{std.rollNumber || '—'}</strong></span>
+                              <span>Parent: <strong className="text-gray-900">{std.parentName}</strong></span>
+                            </div>
                           </div>
                         </div>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsDetailModalOpen(false);
-                            handleOpenUnlinkConfirm(selectedUser, std);
-                          }}
-                          className="px-3 py-1.5 bg-red-50 text-red-700 hover:bg-red-100 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-colors"
-                          title="Unlink this student from portal account"
-                        >
-                          <Unlink className="w-3.5 h-3.5" />
-                          <span>Unlink</span>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Quick Actions Bar */}
               <div className="pt-4 border-t border-gray-100 flex flex-wrap gap-2.5 justify-end">
@@ -1247,16 +2040,28 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
                   type="button"
                   onClick={() => {
                     setIsDetailModalOpen(false);
-                    handleOpenToggleLogin(selectedUser);
+                    handleOpenEditModal(selectedUser);
+                  }}
+                  className="px-4 py-2 bg-blue-50 text-blue-800 hover:bg-blue-100 rounded-xl font-bold flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Edit Profile</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsDetailModalOpen(false);
+                    handleOpenToggleStatus(selectedUser);
                   }}
                   className={`px-4 py-2 rounded-xl font-bold flex items-center gap-1.5 cursor-pointer transition-colors ${
-                    selectedUser.loginEnabled
+                    selectedUser.status === 'ACTIVE'
                       ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
                       : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
                   }`}
                 >
-                  {selectedUser.loginEnabled ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
-                  <span>{selectedUser.loginEnabled ? 'Disable Portal Login' : 'Enable Portal Login'}</span>
+                  {selectedUser.status === 'ACTIVE' ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                  <span>{selectedUser.status === 'ACTIVE' ? 'Disable Account' : 'Enable Account'}</span>
                 </button>
 
                 <button
@@ -1274,172 +2079,54 @@ export default function PortalUsersManager({ currentPath, onNavigate }: PortalUs
       )}
 
       {/* ========================================================================= */}
-      {/* LINK STUDENT MODAL                                                        */}
+      {/* CONFIRM TOGGLE STATUS MODAL                                               */}
       {/* ========================================================================= */}
-      {isLinkModalOpen && selectedUser && (
-        <div className="fixed inset-0 z-50 bg-[#001c46]/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95">
-            <div className="bg-[#001c46] text-white p-5 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Link2 className="w-5 h-5 text-[#FFC907]" />
-                <h3 className="text-base font-black">Link Student to Portal Account</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsLinkModalOpen(false)}
-                className="text-gray-400 hover:text-white"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleLinkSubmit} className="p-6 space-y-4 text-xs">
-              <div>
-                <span className="text-gray-500 font-bold block mb-1">Target Portal Account</span>
-                <div className="font-bold text-[#001c46] bg-gray-50 p-3 rounded-xl border border-gray-200">
-                  {selectedUser.displayName} ({selectedUser.email})
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block font-bold text-[#001c46] uppercase tracking-wider">
-                  Select Student to Link <span className="text-red-500">*</span>
-                </label>
-                <select
-                  required
-                  value={selectedStudentToLink}
-                  onChange={(e) => setSelectedStudentToLink(e.target.value)}
-                  className="block w-full py-2.5 px-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#001c46]"
-                >
-                  <option value="">-- Choose active unlinked student --</option>
-                  {availableStudents.map((std) => (
-                    <option key={std.uid} value={std.uid}>
-                      {std.name} ({std.studentId}) — {std.className} {std.section}
-                    </option>
-                  ))}
-                </select>
-                {availableStudents.length === 0 && (
-                  <p className="text-[11px] text-amber-600 font-medium">
-                    No unlinked active students available.
-                  </p>
-                )}
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setIsLinkModalOpen(false)}
-                  className="px-4 py-2 border border-gray-200 rounded-xl font-bold text-gray-600 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isActionLoading || !selectedStudentToLink}
-                  className="px-5 py-2 bg-[#001c46] text-[#FFC907] hover:bg-[#002866] rounded-xl font-extrabold uppercase tracking-wider flex items-center gap-2 disabled:opacity-50 cursor-pointer"
-                >
-                  {isActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />}
-                  <span>Confirm Link</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* CONFIRM UNLINK MODAL                                                      */}
-      {/* ========================================================================= */}
-      {isUnlinkConfirmOpen && selectedUser && selectedStudentToUnlink && (
-        <div className="fixed inset-0 z-50 bg-[#001c46]/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 p-6 space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto">
-              <Unlink className="w-6 h-6" />
-            </div>
-
-            <div className="text-center space-y-2">
-              <h3 className="text-base font-black text-[#001c46]">
-                Confirm Student Unlink
-              </h3>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                Are you sure you want to unlink <strong>{selectedStudentToUnlink.name}</strong> ({selectedStudentToUnlink.studentId}) from portal user account <strong>{selectedUser.email}</strong>?
-              </p>
-              <div className="bg-blue-50 text-blue-800 text-[11px] p-3 rounded-xl text-left border border-blue-200">
-                <strong>Notice:</strong> This action only removes the login association. The student record, attendance, marks, and fees are completely preserved.
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setIsUnlinkConfirmOpen(false)}
-                className="px-4 py-2 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleUnlinkConfirm}
-                disabled={isActionLoading}
-                className="px-5 py-2 bg-red-600 text-white hover:bg-red-700 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center gap-2 disabled:opacity-50 cursor-pointer"
-              >
-                {isActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Unlink className="w-4 h-4" />}
-                <span>Unlink Student</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* CONFIRM TOGGLE LOGIN MODAL                                                */}
-      {/* ========================================================================= */}
-      {isToggleLoginConfirmOpen && selectedUser && (
+      {isToggleStatusModalOpen && selectedUser && (
         <div className="fixed inset-0 z-50 bg-[#001c46]/70 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 p-6 space-y-4">
             <div
               className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto ${
-                selectedUser.loginEnabled
+                selectedUser.status === 'ACTIVE'
                   ? 'bg-amber-100 text-amber-600'
                   : 'bg-emerald-100 text-emerald-600'
               }`}
             >
-              {selectedUser.loginEnabled ? <Lock className="w-6 h-6" /> : <Unlock className="w-6 h-6" />}
+              {selectedUser.status === 'ACTIVE' ? <Lock className="w-6 h-6" /> : <Unlock className="w-6 h-6" />}
             </div>
 
             <div className="text-center space-y-2">
               <h3 className="text-base font-black text-[#001c46]">
-                {selectedUser.loginEnabled ? 'Disable Portal Login?' : 'Enable Portal Login?'}
+                {selectedUser.status === 'ACTIVE' ? 'Disable Account Access?' : 'Enable Account Access?'}
               </h3>
               <p className="text-xs text-gray-600 leading-relaxed">
-                {selectedUser.loginEnabled
-                  ? `Disabling login will prevent ${selectedUser.email} from logging into the portal dashboard immediately.`
-                  : `Enabling login will restore portal dashboard access for ${selectedUser.email}.`}
+                {selectedUser.status === 'ACTIVE'
+                  ? `Disabling account will prevent ${selectedUser.displayName} (${selectedUser.email}) from logging into the portal immediately. All attendance, grades, and marks remain completely intact.`
+                  : `Enabling account will restore login access for ${selectedUser.displayName} (${selectedUser.email}).`}
               </p>
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => setIsToggleLoginConfirmOpen(false)}
-                className="px-4 py-2 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50"
+                onClick={() => setIsToggleStatusModalOpen(false)}
+                className="px-4 py-2 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
-                onClick={handleToggleLoginConfirm}
-                disabled={isActionLoading}
+                onClick={handleToggleStatusConfirm}
+                disabled={isSubmitting}
                 className={`px-5 py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center gap-2 disabled:opacity-50 cursor-pointer text-white ${
-                  selectedUser.loginEnabled
+                  selectedUser.status === 'ACTIVE'
                     ? 'bg-amber-600 hover:bg-amber-700'
                     : 'bg-emerald-600 hover:bg-emerald-700'
                 }`}
               >
-                {isActionLoading ? (
+                {isSubmitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                  <span>{selectedUser.loginEnabled ? 'Disable Login' : 'Enable Login'}</span>
+                  <span>{selectedUser.status === 'ACTIVE' ? 'Confirm Disable' : 'Confirm Enable'}</span>
                 )}
               </button>
             </div>

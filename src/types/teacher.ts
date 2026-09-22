@@ -1,7 +1,7 @@
 export type TeacherStatus = 'ACTIVE' | 'DISABLED';
 
 export interface Teacher {
-  uid: string; // Document key / unique identifier
+  uid: string; // Document key / Firebase Auth UID
   teacherId: string; // Auto-generated or custom institutional ID (e.g. GP-T-2026-001)
   name: string;
   email: string;
@@ -9,11 +9,13 @@ export interface Teacher {
   alternatePhone?: string;
   subjects: string[];
   assignedClasses: string[];
+  assignedSections?: string[];
   qualification?: string;
   address?: string;
   joiningDate?: string;
   profilePhoto?: string;
   status: TeacherStatus;
+  role?: 'TEACHER';
   isDeleted?: boolean;
   deletedAt?: string;
   deletedBy?: string;
@@ -29,10 +31,12 @@ export interface TeacherFormData {
   alternatePhone: string;
   subjects: string[];
   assignedClasses: string[];
+  assignedSections: string[];
   qualification: string;
   address: string;
   joiningDate: string;
   profilePhoto: string;
+  status?: TeacherStatus;
 }
 
 export interface TeacherFilterOptions {
@@ -41,6 +45,8 @@ export interface TeacherFilterOptions {
   subject: string;
   assignedClass: string;
 }
+
+export const SECTION_OPTIONS = ['A', 'B', 'C', 'D'] as const;
 
 export const SUBJECT_OPTIONS = [
   'Mathematics',

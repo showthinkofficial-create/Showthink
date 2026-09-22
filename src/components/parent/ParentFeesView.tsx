@@ -76,7 +76,7 @@ export const ParentFeesView: React.FC<ParentFeesViewProps> = ({
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-3xl border border-gray-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
             <CreditCard className="w-5 h-5 text-[#001c46]" />
@@ -90,7 +90,7 @@ export const ParentFeesView: React.FC<ParentFeesViewProps> = ({
         <button
           type="button"
           onClick={() => setIsPayFeeModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-[#FFC907] hover:bg-[#e6b400] text-[#001c46] font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm cursor-pointer self-start sm:self-auto"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#FFC907] hover:bg-[#e6b400] text-[#001c46] font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm cursor-pointer w-full sm:w-auto shrink-0"
         >
           <CreditCard className="w-4 h-4 text-[#001c46]" />
           <span>Pay Online (Coming Soon)</span>
@@ -106,9 +106,9 @@ export const ParentFeesView: React.FC<ParentFeesViewProps> = ({
       )}
 
       {/* Fee Summary Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {/* Total Fee */}
-        <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-xs space-y-1">
+        <div className="bg-white p-4 sm:p-6 rounded-3xl border border-gray-200 shadow-xs space-y-1">
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">
             Total Academic Fee
           </span>
@@ -121,7 +121,7 @@ export const ParentFeesView: React.FC<ParentFeesViewProps> = ({
         </div>
 
         {/* Paid Amount */}
-        <div className="bg-white p-6 rounded-3xl border border-emerald-200 bg-emerald-50/20 shadow-xs space-y-1">
+        <div className="bg-white p-4 sm:p-6 rounded-3xl border border-emerald-200 bg-emerald-50/20 shadow-xs space-y-1">
           <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest block">
             Amount Paid
           </span>
@@ -134,7 +134,7 @@ export const ParentFeesView: React.FC<ParentFeesViewProps> = ({
         </div>
 
         {/* Pending Amount */}
-        <div className="bg-white p-6 rounded-3xl border border-amber-200 bg-amber-50/20 shadow-xs space-y-1">
+        <div className="bg-white p-4 sm:p-6 rounded-3xl border border-amber-200 bg-amber-50/20 shadow-xs space-y-1">
           <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest block">
             Pending Dues
           </span>
@@ -148,8 +148,8 @@ export const ParentFeesView: React.FC<ParentFeesViewProps> = ({
       </div>
 
       {/* Verified Payment Receipts Table */}
-      <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+      <div className="bg-white rounded-3xl border border-gray-200 p-4 sm:p-6 shadow-xs space-y-4 sm:space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-4 border-b border-gray-100">
           <div className="flex items-center gap-3">
             <Receipt className="w-5 h-5 text-[#001c46]" />
             <div>
@@ -162,7 +162,7 @@ export const ParentFeesView: React.FC<ParentFeesViewProps> = ({
             </div>
           </div>
 
-          <span className="text-xs bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-xl font-bold text-gray-700">
+          <span className="text-xs bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-xl font-bold text-gray-700 self-start sm:self-auto">
             Total Receipts: {payments.length}
           </span>
         </div>
@@ -174,7 +174,7 @@ export const ParentFeesView: React.FC<ParentFeesViewProps> = ({
           </div>
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-gray-100">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left text-xs min-w-[700px]">
               <thead className="bg-[#001c46] text-white uppercase text-[10px] font-bold">
                 <tr>
                   <th className="px-4 py-3">Receipt Number</th>

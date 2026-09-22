@@ -43,7 +43,7 @@ export const ParentNoticesView: React.FC<ParentNoticesViewProps> = ({
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-3xl border border-gray-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
             <Bell className="w-5 h-5 text-[#001c46]" />
@@ -60,7 +60,7 @@ export const ParentNoticesView: React.FC<ParentNoticesViewProps> = ({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-gray-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
         {/* Search */}
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -97,7 +97,7 @@ export const ParentNoticesView: React.FC<ParentNoticesViewProps> = ({
 
       {/* Notices List */}
       {filteredNotices.length === 0 ? (
-        <div className="bg-white rounded-3xl border border-gray-200 p-12 text-center space-y-3 shadow-xs">
+        <div className="bg-white rounded-3xl border border-gray-200 p-8 sm:p-12 text-center space-y-3 shadow-xs">
           <Bell className="w-12 h-12 text-gray-300 mx-auto" />
           <h3 className="text-base font-bold text-gray-800">No Matching Notices</h3>
           <p className="text-xs text-gray-500 max-w-sm mx-auto">
@@ -113,7 +113,7 @@ export const ParentNoticesView: React.FC<ParentNoticesViewProps> = ({
             return (
               <div
                 key={notice.id}
-                className="bg-white rounded-3xl border border-gray-200 p-6 shadow-xs hover:border-[#001c46] transition-all space-y-4 flex flex-col justify-between"
+                className="bg-white rounded-3xl border border-gray-200 p-4 sm:p-6 shadow-xs hover:border-[#001c46] transition-all space-y-4 flex flex-col justify-between"
               >
                 <div className="space-y-3">
                   {/* Top Meta Tags */}
@@ -143,17 +143,17 @@ export const ParentNoticesView: React.FC<ParentNoticesViewProps> = ({
 
                   {/* Title & Description */}
                   <div>
-                    <h3 className="text-sm sm:text-base font-black text-gray-900 leading-snug">
+                    <h3 className="text-sm sm:text-base font-black text-gray-900 leading-snug break-words">
                       {notice.title}
                     </h3>
-                    <p className="text-xs text-gray-600 mt-2 leading-relaxed whitespace-pre-line">
+                    <p className="text-xs text-gray-600 mt-2 leading-relaxed whitespace-pre-line break-words">
                       {notice.description}
                     </p>
                   </div>
                 </div>
 
                 {/* Footer Attachment or Audience Pill */}
-                <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
+                <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 text-xs">
                   <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
                     Audience: {notice.targetAudience.replace(/_/g, ' ')}
                   </span>
@@ -163,10 +163,10 @@ export const ParentNoticesView: React.FC<ParentNoticesViewProps> = ({
                       href={notice.attachmentUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs font-black text-[#001c46] hover:text-[#1a325d] bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-xl transition-all border border-amber-200"
+                      className="inline-flex items-center gap-1.5 text-xs font-black text-[#001c46] hover:text-[#1a325d] bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-xl transition-all border border-amber-200 max-w-full"
                     >
-                      <Paperclip className="w-3.5 h-3.5 text-[#001c46]" />
-                      <span>View Circular Attachment</span>
+                      <Paperclip className="w-3.5 h-3.5 text-[#001c46] shrink-0" />
+                      <span className="truncate">View Circular Attachment</span>
                     </a>
                   )}
                 </div>

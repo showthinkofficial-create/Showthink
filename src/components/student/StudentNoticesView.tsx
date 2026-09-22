@@ -58,7 +58,7 @@ export const StudentNoticesView: React.FC<StudentNoticesViewProps> = ({ notices,
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Title Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gray-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-3xl border border-gray-200 shadow-xs">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-[#001c46]">
             <Bell className="w-6 h-6 text-[#FFC907]" />
@@ -69,13 +69,13 @@ export const StudentNoticesView: React.FC<StudentNoticesViewProps> = ({ notices,
           </p>
         </div>
 
-        <div className="px-3 py-1 bg-red-100 text-red-800 rounded-xl text-xs font-black uppercase shrink-0">
+        <div className="px-3 py-1 bg-red-100 text-red-800 rounded-xl text-xs font-black uppercase shrink-0 w-fit">
           {relevantNotices.length} Published Notices
         </div>
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs flex flex-col sm:flex-row items-center gap-3">
+      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-gray-200 shadow-xs flex flex-col sm:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
           <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -105,7 +105,7 @@ export const StudentNoticesView: React.FC<StudentNoticesViewProps> = ({ notices,
 
       {/* Notices List */}
       {relevantNotices.length === 0 ? (
-        <div className="bg-white p-12 rounded-3xl border border-gray-200 text-center space-y-3">
+        <div className="bg-white p-8 sm:p-12 rounded-3xl border border-gray-200 text-center space-y-3">
           <Bell className="w-12 h-12 text-gray-300 mx-auto" />
           <h3 className="font-bold text-gray-800">No Notices Available</h3>
           <p className="text-xs text-gray-500 max-w-md mx-auto">
@@ -113,7 +113,7 @@ export const StudentNoticesView: React.FC<StudentNoticesViewProps> = ({ notices,
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {relevantNotices.map((notice) => {
             let priorityBadge = null;
             if (notice.priority === 'URGENT') {
@@ -133,7 +133,7 @@ export const StudentNoticesView: React.FC<StudentNoticesViewProps> = ({ notices,
             return (
               <div
                 key={notice.id}
-                className="bg-white p-6 rounded-3xl border border-gray-200 shadow-xs space-y-3 hover:border-[#001c46] transition-all"
+                className="bg-white p-4 sm:p-6 rounded-3xl border border-gray-200 shadow-xs space-y-3 hover:border-[#001c46] transition-all"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-3">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -149,9 +149,9 @@ export const StudentNoticesView: React.FC<StudentNoticesViewProps> = ({ notices,
                   </div>
                 </div>
 
-                <h3 className="font-black text-base text-gray-900">{notice.title}</h3>
+                <h3 className="font-black text-base text-gray-900 break-words">{notice.title}</h3>
 
-                <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-line font-normal">
+                <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-line font-normal break-words">
                   {notice.description}
                 </p>
 
@@ -161,11 +161,11 @@ export const StudentNoticesView: React.FC<StudentNoticesViewProps> = ({ notices,
                       href={notice.attachmentUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 bg-blue-50 hover:bg-blue-100 text-[#001c46] text-xs font-bold px-3.5 py-2 rounded-xl transition-all border border-blue-200"
+                      className="inline-flex items-center gap-2 bg-blue-50 hover:bg-blue-100 text-[#001c46] text-xs font-bold px-3.5 py-2 rounded-xl transition-all border border-blue-200 max-w-full"
                     >
-                      <Paperclip className="w-4 h-4 text-[#FFC907]" />
-                      <span>{notice.attachmentName || 'Download Notice Attachment'}</span>
-                      <ExternalLink className="w-3.5 h-3.5 ml-1" />
+                      <Paperclip className="w-4 h-4 text-[#FFC907] shrink-0" />
+                      <span className="truncate">{notice.attachmentName || 'Download Notice Attachment'}</span>
+                      <ExternalLink className="w-3.5 h-3.5 ml-1 shrink-0" />
                     </a>
                   </div>
                 )}

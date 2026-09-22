@@ -387,7 +387,7 @@ export default function Home({ setActivePage, onOpenApplyModal }: HomeProps) {
               <img 
                 alt="GP Academy Academic Excellence" 
                 className="w-full h-full object-cover" 
-                src="https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&q=80&w=1200"
+                src="https://lh3.googleusercontent.com/gps-cs-s/AHRPTWmBR3_H2CrCHFM-N3MqttyBeWvKN9DsRZRSVN8TI2miOLs-aD5fdfjkevbkK-KOctQ1u-tDvBbOOmfyURi0Kj7L6h7fg4G8MDbRAMVg4-V0epg8HWrZFWIlfB1_RWgWdsra30X0=s680-w680-h510-rw"
                 referrerPolicy="no-referrer"
               />
             </div>

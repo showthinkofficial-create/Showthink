@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   User,
   Users,
+  GraduationCap,
   CheckSquare,
   History,
   Award,
@@ -15,6 +16,7 @@ export type TeacherTab =
   | 'dashboard'
   | 'profile'
   | 'classes'
+  | 'students'
   | 'attendance'
   | 'attendance-history'
   | 'results'
@@ -35,6 +37,7 @@ export const TeacherNavigation: React.FC<TeacherNavigationProps> = ({
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
     { id: 'profile', label: 'My Profile', icon: <User className="w-4 h-4" /> },
     { id: 'classes', label: 'My Classes', icon: <Users className="w-4 h-4" /> },
+    { id: 'students', label: 'My Students', icon: <GraduationCap className="w-4 h-4" /> },
     { id: 'attendance', label: 'Mark Attendance', icon: <CheckSquare className="w-4 h-4" /> },
     { id: 'attendance-history', label: 'Attendance History', icon: <History className="w-4 h-4" /> },
     { id: 'results', label: 'Student Results', icon: <Award className="w-4 h-4" /> },

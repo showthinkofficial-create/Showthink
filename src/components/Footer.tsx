@@ -137,6 +137,31 @@ export default function Footer({ setActivePage }: FooterProps) {
                   Privacy Policy & Terms
                 </button>
               </li>
+              <li className="pt-2 border-t border-white/5 space-y-1">
+                <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Portals</div>
+                <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                  <button 
+                    onClick={() => setActivePage('login')}
+                    className="text-[#FFC907] hover:underline transition-all"
+                  >
+                    Student / Parent
+                  </button>
+                  <span className="text-gray-600">|</span>
+                  <button 
+                    onClick={() => setActivePage('teacher-login')}
+                    className="text-gray-300 hover:text-white hover:underline transition-all"
+                  >
+                    Faculty
+                  </button>
+                  <span className="text-gray-600">|</span>
+                  <button 
+                    onClick={() => setActivePage('admin-login')}
+                    className="text-gray-400 hover:text-white hover:underline transition-all"
+                  >
+                    Admin
+                  </button>
+                </div>
+              </li>
             </ul>
           </div>
 
